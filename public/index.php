@@ -309,7 +309,7 @@ function getGeneratorDelay()
     return round(35 / max(1, $count), 2);
 }
 
-function echoSkinData($cursor, $json = null, $delay = true)
+function echoSkinData($cursor, $json = null, $delay = true, $return = false)
 {
     if (is_null($json)) {
         $json = dbToJson($cursor);
@@ -332,7 +332,11 @@ function echoSkinData($cursor, $json = null, $delay = true)
         $data["nextRequest"] = getGeneratorDelay();
     }
 
-    echoData($data);
+    if ($return) {
+        return $data;
+    } else {
+        echoData($data);
+    }
 }
 
 function echoData($json, $status = 0)
