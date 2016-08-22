@@ -233,6 +233,34 @@ $app->group("/get", function () use ($app) {
 
 });
 
+$app->group("/validate", function () use ($app) {
+
+    $app->get("/user/:name", function ($name) use ($app) {
+
+        $content = file_get_contents("https://api.mojang.com/users/profiles/minecraft/$name");
+
+        $valid = false;
+        $uuid = "";
+        if ($content !== false) {
+            if (strlen($content) > 0) {
+                $json = json_decode($content, true);
+                if ($json !== false) {
+                    $valid = true;
+                    $uuid = $json ["id"];
+                    $name = $json ["name"];
+                }
+            }
+        }
+
+        echoData(array(
+            "valid" => $valid,
+            "uuid" => $uuid,
+            "name" => $name
+        ));
+    });
+
+});
+
 
 $app->run();
 
