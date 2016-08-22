@@ -66,3 +66,19 @@ function addUuidDashes($uuid)
 {
     return substr($uuid, 0, 8) . '-' . substr($uuid, 8, 4) . '-' . substr($uuid, 12, 4) . '-' . substr($uuid, 16, 4) . '-' . substr($uuid, 20, 12);
 }
+
+function encryptPassword($password)
+{
+    $location = file_get_contents("../internal/cryptoLocation.txt");
+    $key = file_get_contents($location);
+
+    return \Defuse\Crypto\Crypto::encryptWithPassword($password, $key);
+}
+
+function decryptPassword($password)
+{
+    $location = file_get_contents("../internal/cryptoLocation.txt");
+    $key = file_get_contents($location);
+
+    return \Defuse\Crypto\Crypto::decryptWithPassword($password, $key);
+}

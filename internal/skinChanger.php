@@ -41,7 +41,7 @@ function login($username, $password, $clientToken, &$skin_error)
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
     $fields = array(
         "username" => $username,
-        "password" => $password,
+        "password" => decryptPassword($password),
         "clientToken" => $clientToken
     );
     $field_string = json_encode($fields);
@@ -80,7 +80,7 @@ function logout($username, $password)
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
     $fields = array(
         "username" => $username,
-        "password" => $password
+        "password" => decryptPassword($password)
     );
     $field_string = json_encode($fields);
     curl_setopt($ch, CURLOPT_HEADER, false);

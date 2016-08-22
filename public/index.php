@@ -14,10 +14,7 @@ $app->get("/", function () {
 //TODO: remove
 $app->group("/test", function () use ($app) {
     $app->get("/encrypt/:text", function ($text) use ($app) {
-        echo \Defuse\Crypto\Crypto::encryptWithPassword($text, "wHEpebuXKyergEgQbhDK7uBfN4PQKGAUzbnFyBaW1ZLn96AKzbzllgISt68bifbY");
-    });
-    $app->get("/decrypt/:text", function ($text) use ($app) {
-        echo \Defuse\Crypto\Crypto::decryptWithPassword($text, "wHEpebuXKyergEgQbhDK7uBfN4PQKGAUzbnFyBaW1ZLn96AKzbzllgISt68bifbY");
+        echo encryptPassword($text);
     });
 });
 
