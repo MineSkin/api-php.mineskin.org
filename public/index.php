@@ -226,7 +226,7 @@ function generateData($app, $temp, $name, $model, $visibility, $type, $image)
                 "signature" => $skinData["signature"],
                 "url" => $textureUrl,
                 "time" => $time,
-                "account" => (int)$account["_id"],
+                "account" => (int)$account["id"],
                 "type" => $type
             );
 
