@@ -265,7 +265,12 @@ $app->group("/get", function () use ($app) {
             ->skip($size * ($page - 1))->limit($size)->sort(array("id" => 1));
         $json = dbToJson($cursor, true);
 
-        echoData($json);
+        $amount = skins()->find()->count();
+        echoData(array("skins" => $json, "page" => array(
+            "index" => $page,
+            "amount" => round($amount / $size),
+            "totalSkins" => $amount
+        )));
     });
 
 });
