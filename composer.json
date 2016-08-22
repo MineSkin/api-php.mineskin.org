@@ -10,6 +10,7 @@
     }
   ],
   "require": {
-    "slim/slim": "2.6.2"
+    "slim/slim": "2.6.2",
+    "defuse/php-encryption": "2.0.1"
   }
 }
