@@ -134,7 +134,8 @@ $app->group("/generate", function () use ($app) {
                     "signature" => $skinData["signature"],
                     "url" => $textureUrl,
                     "time" => $time,
-                    "account" => -1
+                    "account" => -1,
+                    "type" => "user"
                 );
 
                 skins()->insert($data);
@@ -203,7 +204,8 @@ function generateData($app, $temp, $name, $model, $visibility, $type, $image)
                 "signature" => $skinData["signature"],
                 "url" => $textureUrl,
                 "time" => $time,
-                "account" => $account["id"]
+                "account" => $account["id"],
+                "type" => $type
             );
 
             skins()->insert($data);
