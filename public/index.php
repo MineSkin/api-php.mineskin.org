@@ -130,7 +130,8 @@ $app->group("/generate", function () use ($app) {
                 $lastId = dbToJson($cursor, true)[0]["_id"];
 
                 $data = array(
-                    "_id" => (int)($lastId + 1),
+                    "_id" => $hash,
+                    "id" => (int)($lastId + 1),
                     "hash" => $hash,
                     "name" => $name,
                     "model" => "unknown",
@@ -153,6 +154,20 @@ $app->group("/generate", function () use ($app) {
     });
 
 });
+
+$app->group("/get", function () use ($app) {
+
+    $app->get("/id/:id", function ($id) use ($app) {
+        $cursor = skins()->find(array("id" => (int)$id));
+        if ($cursor->count() >= 1) {
+            echoSkinData($cursor, null, false);
+        } else {
+            echoData(array("error" => "skin not found"), 404);
+        }
+    });
+
+});
+
 
 $app->run();
 
@@ -200,7 +215,8 @@ function generateData($app, $temp, $name, $model, $visibility, $type, $image)
             $skinData = getSkinData($account["uuid"]);
             $textureUrl = json_decode(base64_decode($skinData["value"]), true)["textures"]["SKIN"]["url"];
             $data = array(
-                "_id" => (int)($lastId + 1),
+                "_id" => $hash,
+                "id" => (int)($lastId + 1),
                 "hash" => $hash,
                 "name" => $name,
                 "model" => $model,
@@ -286,7 +302,7 @@ function echoSkinData($cursor, $json = null, $delay = true)
         $json = dbToJson($cursor);
     }
     $data = array(
-        "id" => $json["_id"],
+        "id" => $json["id"],
         "name" => $json["name"],
         "data" => array(
             "uuid" => $json["uuid"],
