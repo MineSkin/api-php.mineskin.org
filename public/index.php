@@ -61,8 +61,7 @@ $app->group("/generate", function () use ($app) {
             return;
         }
 
-        $temp = tempnam(sys_get_temp_dir(), "skin_upload");
-        move_uploaded_file($_FILES["file"]["tmp_name"], $temp);
+        $temp = $_FILES["file"]["tmp_name"];
         if (!validateImage($temp)) {
             return;
         }
