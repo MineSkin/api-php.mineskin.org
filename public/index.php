@@ -181,6 +181,34 @@ $app->group("/get", function () use ($app) {
         }
     });
 
+    $app->get("/stats", function () use ($app) {
+        $cursor = skins()->find();
+        $count = $cursor->count();
+        $duplicate = 0;
+        foreach ($cursor as $doc) {
+            $duplicate += $doc["duplicate"];
+        }
+
+        $private = skins()->find(array("visibility" => array('$ne' => 0)))->count();
+
+        $yesterday = strtotime("1 day ago");
+        $lastDay = skins()->find(array("time" => array('$gt' => $yesterday)))->count();
+
+        $accounts = accounts()->find(array("enabled" => true))->count();
+
+        $delay = getGeneratorDelay();
+
+        echoData(array(
+            "total" => ($count + $duplicate),
+            "unique" => $count,
+            "duplicate" => $duplicate,
+            "private" => $private,
+            "lastDay" => $lastDay,
+            "accounts" => $accounts,
+            "delay" => $delay
+        ));
+    });
+
     $app->get("/id/:id", function ($id) use ($app) {
         $cursor = skins()->find(array("id" => (int)$id));
         if ($cursor->count() >= 1) {
