@@ -142,7 +142,8 @@ $app->group("/generate", function () use ($app) {
                     "url" => $textureUrl,
                     "time" => $time,
                     "account" => -1,
-                    "type" => "user"
+                    "type" => "user",
+                    "duplicate" => 0
                 );
 
                 skins()->insert($data);
@@ -263,7 +264,8 @@ function generateData($app, $temp, $name, $model, $visibility, $type, $image)
                 "url" => $textureUrl,
                 "time" => $time,
                 "account" => (int)$account["id"],
-                "type" => $type
+                "type" => $type,
+                "duplicate" => 0
             );
 
             skins()->insert($data);
