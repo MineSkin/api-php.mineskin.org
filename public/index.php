@@ -306,7 +306,7 @@ function generateData($app, $temp, $name, $model, $visibility, $type, $image)
     $hash = md5_file($temp);
     $cursor = skins()->find(array("hash" => $hash));
     if ($cursor->count() >= 1) {// Already generated
-        echoSkinData($cursor, null, false);
+        echoSkinData($cursor, $json, false);
         skins()->update(array("hash" => $hash), array('$inc' => array("duplicate" => 1)));
         return;
     } else {// Generate new
