@@ -135,9 +135,12 @@ $app->group("/generate", function () use ($app) {
 
         $cursor = skins()->find(array("uuid" => $longUuid));
         if ($cursor->count() >= 1) {// Already exists
-            echoSkinData($cursor, $json, false);
-            skins()->update(array("uuid" => $longUuid), array('$inc' => array("duplicate" => 1)));
-            return;
+            $json = dbToJson($cursor);
+            if ($json["time"] > strtotime("1 hour ago")) {
+                echoSkinData($cursor, $json, false);
+                skins()->update(array("uuid" => $longUuid), array('$inc' => array("duplicate" => 1)));
+                return;
+            }
         }
 
         if ($skinData = getSkinData($shortUuid)) {
