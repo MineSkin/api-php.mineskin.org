@@ -101,7 +101,7 @@ $app->group("/generate", function () use ($app) {
 
         $cursor = skins()->find(array("uuid" => $longUuid));
         if ($cursor->count() >= 1) {// Already exists
-            echoSkinData($cursor, null, false);
+            echoSkinData($cursor, $json, false);
             skins()->update(array("uuid" => $longUuid), array('$inc' => array("duplicate" => 1)));
             return;
         }
@@ -115,7 +115,7 @@ $app->group("/generate", function () use ($app) {
 
             $cursor = skins()->find(array("hash" => $hash));
             if ($cursor->count() >= 1) {// Already generated
-                echoSkinData($cursor, null, false);
+                echoSkinData($cursor, $json, false);
                 skins()->update(array("hash" => $hash), array('$inc' => array("duplicate" => 1)));
                 return;
             } else {
@@ -160,7 +160,7 @@ $app->group("/get", function () use ($app) {
     $app->get("/id/:id", function ($id) use ($app) {
         $cursor = skins()->find(array("id" => (int)$id));
         if ($cursor->count() >= 1) {
-            echoSkinData($cursor, null, false);
+            echoSkinData($cursor, $json, false);
         } else {
             echoData(array("error" => "skin not found"), 404);
         }
@@ -309,7 +309,7 @@ function getGeneratorDelay()
     return round(35 / max(1, $count), 2);
 }
 
-function echoSkinData($cursor, $json = null, $delay = true, $return = false)
+function echoSkinData($cursor, &$json = null, $delay = true, $return = false)
 {
     if (is_null($json)) {
         $json = dbToJson($cursor);
