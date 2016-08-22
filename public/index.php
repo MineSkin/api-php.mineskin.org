@@ -166,6 +166,19 @@ $app->group("/get", function () use ($app) {
         }
     });
 
+    $app->get("/list(/:page)", function ($page = 1) use ($app) {
+        $page = max((int)$page, 1);
+        $size = max((int)$app->request()->params("size", 16), 1);
+
+        $cursor = skins()
+            ->find(array("visibility" => 0),
+                array("_id" => 0, "id" => 1, "name" => 1, "url" => 1))
+            ->skip($size * ($page - 1))->limit($size)->sort(array("id" => 1));
+        $json = dbToJson($cursor, true);
+
+        echoData($json);
+    });
+
 });
 
 
