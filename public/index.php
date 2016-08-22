@@ -157,6 +157,29 @@ $app->group("/generate", function () use ($app) {
 
 $app->group("/get", function () use ($app) {
 
+    $app->get("/delay", function () use ($app) {
+        $time = time();
+        $ip = $app->request()->getIp();
+
+        $delay = getGeneratorDelay();
+
+        $cursor = traffic()->find(array("ip" => $ip));
+        if ($cursor->count() >= 0) {
+            $json = dbToJson($cursor);
+            $lastRequest = $json["lastRequest"];
+
+            echoData(array(
+                "delay" => $delay,
+                "next" => ($lastRequest + $delay),
+                "nextRelative" => (($lastRequest + $delay) - $time)));
+        } else {// First request
+            echoData(array(
+                "delay" => $delay,
+                "next" => $time,
+                "nextRelative" => 0));
+        }
+    });
+
     $app->get("/id/:id", function ($id) use ($app) {
         $cursor = skins()->find(array("id" => (int)$id));
         if ($cursor->count() >= 1) {
