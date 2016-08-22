@@ -325,6 +325,8 @@ function echoSkinData($cursor, &$json = null, $delay = true, $return = false)
                 "url" => $json["url"]
             )
         ),
+        "timestamp" => $json["time"],
+        "accountId" => $json["account"],
         "nextRequest" => 0
     );
 
