@@ -123,11 +123,11 @@ $app->group("/generate", function () use ($app) {
                 $lastId = dbToJson($cursor, true)[0]["_id"];
 
                 $data = array(
-                    "_id" => $lastId + 1,
+                    "_id" => (int)($lastId + 1),
                     "hash" => $hash,
                     "name" => $name,
                     "model" => "unknown",
-                    "visibility" => $visibility,
+                    "visibility" => (int)$visibility,
                     "uuid" => $longUuid,
                     "value" => $skinData["value"],
                     "signature" => $skinData["signature"],
@@ -193,17 +193,17 @@ function generateData($app, $temp, $name, $model, $visibility, $type, $image)
             $skinData = getSkinData($account["uuid"]);
             $textureUrl = json_decode(base64_decode($skinData["value"]), true)["textures"]["SKIN"]["url"];
             $data = array(
-                "_id" => $lastId + 1,
+                "_id" => (int)($lastId + 1),
                 "hash" => $hash,
                 "name" => $name,
                 "model" => $model,
-                "visibility" => $visibility,
+                "visibility" => (int)$visibility,
                 "uuid" => randomUuid(),
                 "value" => $skinData["value"],
                 "signature" => $skinData["signature"],
                 "url" => $textureUrl,
                 "time" => $time,
-                "account" => $account["_id"],
+                "account" => (int)$account["_id"],
                 "type" => $type
             );
 
