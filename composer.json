@@ -1,0 +1,15 @@
+{
+  "name": "mineskin/api",
+  "description": "Mineskin API to generate custom skins",
+  "minimum-stability": "beta",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "inventivetalent",
+      "email": "mail@inventivetalent.org"
+    }
+  ],
+  "require": {
+    "slim/slim": "2.6.2"
+  }
+}
