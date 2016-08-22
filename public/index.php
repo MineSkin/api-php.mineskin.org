@@ -126,8 +126,8 @@ $app->group("/generate", function () use ($app) {
                         "lastRequest" => $time
                     )), array("upsert" => true));
 
-                $cursor = skins()->find()->sort(array("_id" => -1))->limit(1);
-                $lastId = dbToJson($cursor, true)[0]["_id"];
+                $cursor = skins()->find()->sort(array("id" => -1))->limit(1);
+                $lastId = dbToJson($cursor, true)[0]["id"];
 
                 $data = array(
                     "_id" => $hash,
@@ -209,8 +209,8 @@ function generateData($app, $temp, $name, $model, $visibility, $type, $image)
                     "lastRequest" => $time
                 )), array("upsert" => true));
 
-            $cursor = skins()->find()->sort(array("_id" => -1))->limit(1);
-            $lastId = dbToJson($cursor, true)[0]["_id"];
+            $cursor = skins()->find()->sort(array("id" => -1))->limit(1);
+            $lastId = dbToJson($cursor, true)[0]["id"];
 
             $skinData = getSkinData($account["uuid"]);
             $textureUrl = json_decode(base64_decode($skinData["value"]), true)["textures"]["SKIN"]["url"];
