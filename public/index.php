@@ -202,7 +202,7 @@ $app->group("/get", function () use ($app) {
         $delay = getGeneratorDelay();
 
         $cursor = traffic()->find(array("ip" => $ip));
-        if ($cursor->count() >= 0) {
+        if ($cursor->count() >= 1) {
             $json = dbToJson($cursor);
             $lastRequest = $json["lastRequest"];
 
@@ -259,9 +259,14 @@ $app->group("/get", function () use ($app) {
         $page = max((int)$page, 1);
         $size = max((int)$app->request()->params("size", 16), 1);
         $sort = (int)$app->request()->params("sort", -1);
+        $filter = $app->request()->params("filter");
 
+        $query=array("visibility" => 0);
+        if (!empty($filter)) {
+            $query["name"] = "/$filter/i";
+        }
         $cursor = skins()
-            ->find(array("visibility" => 0),
+            ->find($query,
                 array("_id" => 0, "id" => 1, "name" => 1, "url" => 1))
             ->skip($size * ($page - 1))->limit($size)->sort(array("id" => $sort));
         $json = dbToJson($cursor, true);
