@@ -49,6 +49,7 @@ $app->group("/test", function () use ($app) {
                 "time" => $timestamp,
                 "account" => $account,
                 "duplicate" => (int)$skin["duplicate"],
+                "views" => 0,
 
                 "uuid" => $skinData["Id"],
                 "value" => $texture["Value"],
@@ -190,7 +191,8 @@ $app->group("/generate", function () use ($app) {
                     "time" => $time,
                     "account" => -1,
                     "type" => "user",
-                    "duplicate" => 0
+                    "duplicate" => 0,
+                    "views" => 1
                 );
 
                 skins()->insert($data);
@@ -260,6 +262,7 @@ $app->group("/get", function () use ($app) {
         $cursor = skins()->find(array("id" => (int)$id));
         if ($cursor->count() >= 1) {
             echoSkinData($cursor, $json, false);
+            skins()->update(array("id" => (int)$id), array('$inc' => array("views" => 1)));
         } else {
             echoData(array("error" => "skin not found"), 404);
         }
@@ -450,7 +453,8 @@ function generateData($app, $temp, $name, $model, $visibility, $type, $image)
                 "time" => $time,
                 "account" => (int)$account["id"],
                 "type" => $type,
-                "duplicate" => 0
+                "duplicate" => 0,
+                "views" => 1
             );
 
             skins()->insert($data);
