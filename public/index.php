@@ -276,7 +276,7 @@ $app->group("/get", function () use ($app) {
 
         $query = array("visibility" => 0);
         if (!empty($filter)) {
-            $query["name"] = "/$filter/i";
+            $query["name"] = array('$regex' => "/$filter/i");
         }
         $cursor = skins()
             ->find($query,
