@@ -259,8 +259,6 @@ function completeChallenge($ch, $token)
 
 function curl_post($ch, $fields)
 {
-    var_dump($fields);
-
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
