@@ -7,6 +7,15 @@ include("../internal/dataFetcher.php");
 
 $app = new \Slim\Slim();
 
+$app->hook("slim.before", function () use ($app) {
+    header("Access-Control-Allow-Origin: *");
+    if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
+        header("Access-Control-Allow-Methods: POST, GET, OPTIONS, DELETE, PUT");
+        header("Access-Control-Request-Headers: X-Requested-With, Accept, Content-Type, Origin");
+        exit;
+    }
+});
+
 $app->get("/", function () {
     echo "hi!";
 });
