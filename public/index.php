@@ -276,7 +276,7 @@ $app->group("/get", function () use ($app) {
 
         $query = array("visibility" => 0);
         if (!empty($filter)) {
-            $query["name"] = array('$regex' => "/$filter/i");
+            $query["name"] = array('$regex' => new MongoRegex("/$filter/i"));
         }
         $cursor = skins()
             ->find($query,
@@ -289,7 +289,7 @@ $app->group("/get", function () use ($app) {
             "index" => $page,
             "amount" => round($amount / $size),
             "totalSkins" => $amount
-        )));
+        ), "filter" => $filter));
     });
 
 });
