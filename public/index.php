@@ -321,6 +321,22 @@ $app->group("/validate", function () use ($app) {
 
 $app->group("/render", function () use ($app) {
 
+    $app->get("/:id/skin", function ($id) use ($app) {
+        $cursor = skins()->find(array("id" => (int)$id));
+        if ($cursor->count() >= 1) {
+            $json = dbToJson($cursor);
+            header("Location: /render/skin/?url=" . $json["url"]);
+        }
+    });
+
+    $app->get("/:id/head", function ($id) use ($app) {
+        $cursor = skins()->find(array("id" => (int)$id));
+        if ($cursor->count() >= 1) {
+            $json = dbToJson($cursor);
+            header("Location: /render/head/?url=" . $json["url"]);
+        }
+    });
+
     $app->get("/skin", function () use ($app) {
         $url = $app->request()->params("url");
         $options = $app->request()->params("options", "&aa=true");
