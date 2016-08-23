@@ -271,7 +271,7 @@ $app->group("/get", function () use ($app) {
         $sort = (int)$app->request()->params("sort", -1);
         $filter = $app->request()->params("filter");
 
-        $query=array("visibility" => 0);
+        $query = array("visibility" => 0);
         if (!empty($filter)) {
             $query["name"] = "/$filter/i";
         }
@@ -319,6 +319,61 @@ $app->group("/validate", function () use ($app) {
 
 });
 
+$app->group("/render", function () use ($app) {
+
+    $app->get("/skin", function () use ($app) {
+        $url = $app->request()->params("url");
+        $options = $app->request()->params("options", "&aa=true");
+        if (is_null($url)) {
+            exit("Missing URL");
+        }
+
+        if (strpos($url, ".png") !== false) {
+            $url = str_replace(".png", "", $url);
+        }
+
+        if (strpos($url, "tools.inventivetalent.org/skinrender") === false) {
+            $url = "http://tools.inventivetalent.org/skinrender/3d.php?headOnly=false&user=" . $url . $options;
+        }
+
+
+        header('Pragma: public');
+        header('Cache-Control: max-age=604800');
+        header('Expires: ' . gmdate('D, d M Y H:i:s \G\M\T', time() + 604800));
+
+        $imginfo = getimagesize($url);
+        header("Content-type: " . $imginfo ['mime']);
+        readfile($url);
+        exit();
+    });
+
+    $app->get("/head", function () use ($app) {
+        $url = $app->request()->params("url");
+        $options = $app->request()->params("options", "&aa=true");
+        if (is_null($url)) {
+            exit("Missing URL");
+        }
+
+        if (strpos($url, ".png") !== false) {
+            $url = str_replace(".png", "", $url);
+        }
+
+        if (strpos($url, "tools.inventivetalent.org/skinrender") === false) {
+            $url = "http://tools.inventivetalent.org/skinrender/3d.php?headOnly=true&user=" . $url . $options;
+        }
+
+
+        header('Pragma: public');
+        header('Cache-Control: max-age=604800');
+        header('Expires: ' . gmdate('D, d M Y H:i:s \G\M\T', time() + 604800));
+
+        $imginfo = getimagesize($url);
+        header("Content-type: " . $imginfo ['mime']);
+        readfile($url);
+        exit();
+    });
+
+});
 
 $app->run();
 
