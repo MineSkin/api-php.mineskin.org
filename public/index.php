@@ -157,7 +157,7 @@ $app->group("/generate", function () use ($app) {
                 echoSkinData(null, $data, true);
             }
         } else {
-            echoData(array("error" => "invalid user"), 400);
+            echoData(array("error" => "invalid user / failed to get skin data"), 400);
         }
     });
 
@@ -395,28 +395,32 @@ function generateData($app, $temp, $name, $model, $visibility, $type, $image)
             $cursor = skins()->find()->sort(array("id" => -1))->limit(1);
             $lastId = dbToJson($cursor, true)[0]["id"];
 
-            $skinData = getSkinData($account["uuid"]);
-            $textureUrl = json_decode(base64_decode($skinData["value"]), true)["textures"]["SKIN"]["url"];
-            $data = array(
-                "_id" => $hash,
-                "id" => (int)($lastId + 1),
-                "hash" => $hash,
-                "name" => $name,
-                "model" => $model,
-                "visibility" => (int)$visibility,
-                "uuid" => randomUuid(),
-                "value" => $skinData["value"],
-                "signature" => $skinData["signature"],
-                "url" => $textureUrl,
-                "time" => $time,
-                "account" => (int)$account["id"],
-                "type" => $type,
-                "duplicate" => 0,
-                "views" => 1
-            );
+            if ($skinData = getSkinData($account["uuid"])) {
+                $textureUrl = json_decode(base64_decode($skinData["value"]), true)["textures"]["SKIN"]["url"];
+                $data = array(
+                    "_id" => $hash,
+                    "id" => (int)($lastId + 1),
+                    "hash" => $hash,
+                    "name" => $name,
+                    "model" => $model,
+                    "visibility" => (int)$visibility,
+                    "uuid" => randomUuid(),
+                    "value" => $skinData["value"],
+                    "signature" => $skinData["signature"],
+                    "url" => $textureUrl,
+                    "time" => $time,
+                    "account" => (int)$account["id"],
+                    "type" => $type,
+                    "duplicate" => 0,
+                    "views" => 1
+                );
 
-            skins()->insert($data);
-            echoSkinData(null, $data, true);
+                skins()->insert($data);
+                echoSkinData(null, $data, true);
+            } else {
+                echoData(array("error" => "failed to get skin data"), 500);
+                return;
+            }
         } else {
             echoData(array("error" => "failed to generate skin",
                 "details" => $skin_error), 500);
