@@ -242,7 +242,7 @@ $app->group("/get", function () use ($app) {
             ->skip($size * ($page - 1))->limit($size)->sort(array("id" => $sort));
         $json = dbToJson($cursor, true);
 
-        $amount = skins()->find()->count();
+        $amount = skins()->find($query)->count();
         echoData(array("skins" => $json, "page" => array(
             "index" => $page,
             "amount" => round($amount / $size),
