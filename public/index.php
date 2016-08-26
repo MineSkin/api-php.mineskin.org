@@ -500,7 +500,8 @@ function echoSkinData($cursor, &$json = null, $delay = true, $return = false)
         "timestamp" => $json["time"],
         "accountId" => $json["account"],
         "nextRequest" => 0,
-        "private" => ($json["visibility"] != 0)
+        "private" => ($json["visibility"] != 0),
+        "views" => $json["views"]
     );
 
     if ($delay) {
