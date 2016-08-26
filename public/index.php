@@ -250,6 +250,25 @@ $app->group("/get", function () use ($app) {
         ), "filter" => $filter));
     });
 
+    $app->get("/top(/:page)", function ($page = 1) use ($app) {
+        $page = max((int)$page, 1);
+        $size = max((int)$app->request()->params("size", 16), 1);
+
+        $query = array("visibility" => 0, "views" => array('$gt' => 0));
+        $cursor = skins()
+            ->find($query,
+                array("_id" => 0, "id" => 1, "name" => 1, "url" => 1, "views" => 1))
+            ->skip($size * ($page - 1))->limit($size)->sort(array("views" => -1));
+        $json = dbToJson($cursor, true);
+
+        $amount = $cursor->count();
+        echoData(array("skins" => $json, "page" => array(
+            "index" => $page,
+            "amount" => round($amount / $size),
+            "total" => $amount
+        )));
+    });
+
 });
 
 $app->group("/validate", function () use ($app) {
