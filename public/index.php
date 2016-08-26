@@ -21,48 +21,6 @@ $app->get("/", function () {
     echo "hi!";
 });
 
-//TODO: remove
-$app->group("/test", function () use ($app) {
-    $app->get("/encrypt/:text", function ($text) use ($app) {
-        echo encryptPassword($text);
-    });
-    $app->post("/importSql", function () use ($app) {
-        $body = $app->request()->getBody();
-        $json = json_decode($body, true);
-
-        foreach ($json as $skin) {
-            $skinData = json_decode($skin["JSON"], true)["SkullOwner"];
-            $texture = $skinData["Properties"]["textures"][0];
-
-            if (!($timestamp = strtotime($skin["time"]))) {
-                $timestamp = -1;
-            }
-            $account = (int)$skin["generator_account"];
-            if ($account === 0) $account = -1;
-            skins()->insert(array(
-                "_id" => $skin["hash"],
-                "id" => (int)$skin["id"],
-                "name" => $skin["name"],
-                "hash" => $skin["hash"],
-                "url" => $skin["url"],
-                "visibility" => (int)$skin["visibility"],
-                "time" => $timestamp,
-                "account" => $account,
-                "duplicate" => (int)$skin["duplicate"],
-                "views" => 0,
-
-                "uuid" => $skinData["Id"],
-                "value" => $texture["Value"],
-                "signature" => $texture["Signature"],
-
-                "model" => "steve",
-                "type" => "url",
-                "imported" => "sql"
-            ), array("w" => 0));
-        }
-    });
-});
-
 $app->group("/generate", function () use ($app) {
 
     $app->post("/url", function () use ($app) {
