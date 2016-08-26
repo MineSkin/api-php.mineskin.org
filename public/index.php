@@ -324,7 +324,7 @@ $app->group("/validate", function () use ($app) {
 
 $app->group("/render", function () use ($app) {
 
-    $app->get("/:id/skin", function ($id) use ($app) {
+    $app->get("/:id/skin(.png)", function ($id) use ($app) {
         $cursor = skins()->find(array("id" => (int)$id));
         if ($cursor->count() >= 1) {
             $json = dbToJson($cursor);
@@ -332,7 +332,7 @@ $app->group("/render", function () use ($app) {
         }
     });
 
-    $app->get("/:id/head", function ($id) use ($app) {
+    $app->get("/:id/head(.png)", function ($id) use ($app) {
         $cursor = skins()->find(array("id" => (int)$id));
         if ($cursor->count() >= 1) {
             $json = dbToJson($cursor);
