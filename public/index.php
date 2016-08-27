@@ -305,7 +305,7 @@ $app->group("/render", function () use ($app) {
         $cursor = skins()->find(array("id" => (int)$id));
         if ($cursor->count() >= 1) {
             $json = dbToJson($cursor);
-            header("Location: /render/skin/?url=" . $json["url"]);
+            header("Location: https://api.mineskin.org/render/skin/?url=" . $json["url"]);
         }
     });
 
@@ -313,7 +313,7 @@ $app->group("/render", function () use ($app) {
         $cursor = skins()->find(array("id" => (int)$id));
         if ($cursor->count() >= 1) {
             $json = dbToJson($cursor);
-            header("Location: /render/head/?url=" . $json["url"]);
+            header("Location: https://api.mineskin.org/render/head/?url=" . $json["url"]);
         }
     });
 
