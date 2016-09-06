@@ -104,7 +104,8 @@ $app->group("/generate", function () use ($app) {
 
         $cursor = skins()->find(array("uuid" => $longUuid));
         if ($cursor->count() >= 1) {// Already exists
-            $json = dbToJson($cursor);
+            $json = dbToJson($cursor, true);
+            $json = $json[0];
             if ($json["time"] > strtotime("1 hour ago")) {
                 echoSkinData($cursor, $json, false);
                 skins()->update(array("uuid" => $longUuid), array('$inc' => array("duplicate" => 1)));
@@ -507,7 +508,8 @@ function getGeneratorDelay()
 function echoSkinData($cursor, &$json = null, $delay = true, $return = false)
 {
     if (is_null($json)) {
-        $json = dbToJson($cursor);
+        $json = dbToJson($cursor, true);
+        $json = $json[0];
     }
     $data = array(
         "id" => $json["id"],
