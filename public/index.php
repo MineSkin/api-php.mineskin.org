@@ -174,7 +174,7 @@ $app->group("/get", function () use ($app) {
 
         $cursor = traffic()->find(array("ip" => $ip));
         if ($cursor->count() >= 1) {
-            $json = dbToJson($cursor);
+            $json = dbToJson($cursor,true)[0];
             $lastRequest = $json["lastRequest"];
 
             echoData(array(
@@ -305,7 +305,7 @@ $app->group("/render", function () use ($app) {
     $app->get("/:id/skin(.png)", function ($id) use ($app) {
         $cursor = skins()->find(array("id" => (int)$id));
         if ($cursor->count() >= 1) {
-            $json = dbToJson($cursor);
+            $json = dbToJson($cursor, true)[0];
             header("Location: https://api.mineskin.org/render/skin/?url=" . $json["url"]);
         }
     });
@@ -313,7 +313,7 @@ $app->group("/render", function () use ($app) {
     $app->get("/:id/head(.png)", function ($id) use ($app) {
         $cursor = skins()->find(array("id" => (int)$id));
         if ($cursor->count() >= 1) {
-            $json = dbToJson($cursor);
+            $json = dbToJson($cursor, true)[0];
             header("Location: https://api.mineskin.org/render/head/?url=" . $json["url"]);
         }
     });
@@ -456,7 +456,7 @@ function checkTraffic($app, $cancelRequest = true)
 
     $cursor = traffic()->find(array("ip" => $ip));
     if ($cursor->count() >= 1) {
-        $json = dbToJson($cursor);
+        $json = dbToJson($cursor,true)[0];
         $lastRequest = $json["lastRequest"];
 
         $delay = getGeneratorDelay();
