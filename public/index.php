@@ -112,7 +112,7 @@ $app->group("/generate", function () use ($app) {
             }
         }
 
-        if ($skinData = getSkinData($shortUuid)) {
+        if ($skinData = getSkinData($shortUuid, $skinDataError)) {
             $textureUrl = json_decode(base64_decode($skinData["value"]), true)["textures"]["SKIN"]["url"];
 
             $temp = tempnam(sys_get_temp_dir(), "skin_upload");
@@ -157,7 +157,7 @@ $app->group("/generate", function () use ($app) {
                 echoSkinData(null, $data, true);
             }
         } else {
-            echoData(array("error" => "invalid user / failed to get skin data"), 400);
+            echoData(array("error" => "invalid user / failed to get skin data. Return code #" . $skinDataError), 400);
         }
     });
 
@@ -414,7 +414,7 @@ function generateData($app, $temp, $name, $model, $visibility, $type, $image)
             $cursor = skins()->find()->sort(array("id" => -1))->limit(1);
             $lastId = dbToJson($cursor, true)[0]["id"];
 
-            if ($skinData = getSkinData($account["uuid"])) {
+            if ($skinData = getSkinData($account["uuid"], $skinDataError)) {
                 $textureUrl = json_decode(base64_decode($skinData["value"]), true)["textures"]["SKIN"]["url"];
                 $data = array(
                     "_id" => $hash,
@@ -437,7 +437,7 @@ function generateData($app, $temp, $name, $model, $visibility, $type, $image)
                 skins()->insert($data);
                 echoSkinData(null, $data, true);
             } else {
-                echoData(array("error" => "failed to get skin data"), 500);
+                echoData(array("error" => "failed to get skin data. Return code #" . $skinDataError), 500);
                 return;
             }
         } else {
