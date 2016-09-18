@@ -456,6 +456,7 @@ function generateData($app, $temp, $name, $model, $visibility, $type, $image)
                 array("username" => $account["username"]),
                 array('$set' => array(
                     "hasError" => true,
+                    "enabled" => false,
                     "lastError" => $skin_error)));
             return;
         }
