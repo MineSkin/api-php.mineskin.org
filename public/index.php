@@ -414,7 +414,7 @@ color:red;
                 echo "<form action='/admin/accounts/update/" . $account["id"] . "' method='post'>";
                 echo "<div id='account-" . $account["id"] . "' class='account " . ($account["enabled"] ? "account-enabled" : "account-disabled") . " " . ($account["hasError"] ? "account-error" : "") . "'>";
                 echo "<h2>#" . $account["id"] . "&nbsp;" . $account["username"] . "</h2>";
-                if ($account["id"] == $_GET["updatedId"]) {
+                if (isset($_GET["updateId"]) && $account["id"] == $_GET["updatedId"]) {
                     echo "<i>Updated!</i><br/>";
                 }
                 echo "<strong>Username</strong>&nbsp;<input id='username' name='username' type='text' readonly value='" . $account["username"] . "'><br/>";
@@ -453,7 +453,7 @@ color:red;
                 array('$set' => array(
                     "enabled" => $enabled,
                     "hasError" => $hasError,
-                    "lastError"=>$lastError,
+                    "lastError" => $lastError,
                     "lastUsed" => $lastUsed
                 )));
 
