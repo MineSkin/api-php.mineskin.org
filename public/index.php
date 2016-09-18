@@ -408,7 +408,7 @@ color:red;
                     $account["hasError"] = false;
                 }
                 if (!isset($account["lastError"])) {
-                    $account["lastError"] = "?";
+                    $account["lastError"] = "";
                 }
 
                 echo "<form action='/admin/accounts/update/" . $account["id"] . "' method='post'>";
@@ -423,7 +423,7 @@ color:red;
                 echo "<strong>Enabled</strong>&nbsp;<input id='enabled' name='enabled' type='checkbox' " . ($account["enabled"] ? "checked" : "") . "><br/>";
                 echo "<strong>Has Error</strong>&nbsp;<input id='hasError' name='hasError' type='checkbox' " . ($account["hasError"] ? "checked" : "") . "><br/>";
                 if ($account["hasError"]) {
-                    echo "<input type='text' readonly value='" . $account["lastError"] . "'><br/>";
+                    echo "<input id='lastError' name='lastError' type='text' style='width:100%;' value='" . $account["lastError"] . "'><br/>";
                 }
                 echo "<br/><button type='submit'>Update</button>";
                 echo "<hr/>";
@@ -445,6 +445,7 @@ color:red;
 
             $enabled = isset($_POST["enabled"]) && $_POST["enabled"];
             $hasError = isset($_POST["hasError"]) && $_POST["hasError"];
+            $lastError = $_POST["lastError"];
             $lastUsed = (int)$_POST["lastUsed"];
 
             accounts()->update(
@@ -452,6 +453,7 @@ color:red;
                 array('$set' => array(
                     "enabled" => $enabled,
                     "hasError" => $hasError,
+                    "lastError"=>$lastError,
                     "lastUsed" => $lastUsed
                 )));
 
