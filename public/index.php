@@ -451,6 +451,12 @@ function generateData($app, $temp, $name, $model, $visibility, $type, $image)
         } else {
             echoData(array("error" => "failed to generate skin",
                 "details" => $skin_error), 500);
+
+            accounts()->update(
+                array("username" => $account["username"]),
+                array('$set' => array(
+                    "hasError" => true,
+                    "lastError" => $skin_error)));
             return;
         }
     }
