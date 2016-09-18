@@ -693,7 +693,6 @@ function dbToJson($cursor, $forceArray = false)
 
 function authenticateUser()
 {
-    session_start();
     if (!isset($_SERVER["PHP_AUTH_USER"])) {
         header('WWW-Authenticate: Basic realm="Mineskin Admin"');
         header('HTTP/1.0 401 Unauthorized');
@@ -718,8 +717,6 @@ function authenticateUser()
                 exit(403);
             } else {
                 // Authorized
-                $_SESSION["username"] = $user;
-
                 return true;
             }
         }
