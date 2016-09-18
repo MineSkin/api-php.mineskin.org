@@ -424,6 +424,8 @@ color:red;
                 echo "<strong>Has Error</strong>&nbsp;<input id='hasError' name='hasError' type='checkbox' " . ($account["hasError"] ? "checked" : "") . "><br/>";
                 if ($account["hasError"]) {
                     echo "<input id='lastError' name='lastError' type='text' style='width:100%;' value='" . $account["lastError"] . "'><br/>";
+                } else {
+                    echo "<input id='lastError' name='lastError' type='hidden' value=''>";
                 }
                 echo "<br/><button type='submit'>Update</button>";
                 echo "<hr/>";
