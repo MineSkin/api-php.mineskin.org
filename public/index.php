@@ -419,7 +419,7 @@ color:red;
                 }
                 echo "<strong>Username</strong>&nbsp;<input id='username' name='username' type='text' readonly value='" . $account["username"] . "'><br/>";
                 echo "<strong>UUID</strong>&nbsp;<input id='uuid' name='uuid' type='text' readonly value='" . $account["uuid"] . "'><br/>";
-                echo "<strong>Last Used</strong>&nbsp;<input id='lastUsed' name='lastUsed' type='number' value='" . $account["lastUsed"] . "'><br/>";
+                echo "<strong>Last Used</strong>&nbsp;<input id='lastUsed' name='lastUsed' type='number' value='" . $account["lastUsed"] . "'>&nbsp;(".date("F j, Y \a\\t g:ia", $account["lastUsed"]).")<br/>";
                 echo "<strong>Enabled</strong>&nbsp;<input id='enabled' name='enabled' type='checkbox' " . ($account["enabled"] ? "checked" : "") . "><br/>";
                 echo "<strong>Has Error</strong>&nbsp;<input id='hasError' name='hasError' type='checkbox' " . ($account["hasError"] ? "checked" : "") . "><br/>";
                 if ($account["hasError"]) {
