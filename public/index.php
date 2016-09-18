@@ -218,7 +218,7 @@ $app->group("/get", function () use ($app) {
     });
 
     $app->get("/accounts", function () use ($app) {
-        $cursor = accounts()->find(array(), array("_id" => 0, "id" => 1, "uuid" => 1, "lastUsed" => 1, "enabled" => 1));
+        $cursor = accounts()->find(array(), array("_id" => 0, "id" => 1, "uuid" => 1, "lastUsed" => 1, "enabled" => 1, "hasError" => 1));
         $json = dbToJson($cursor, true);
 
         echoData($json);
