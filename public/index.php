@@ -379,6 +379,88 @@ $app->group("/render", function () use ($app) {
 
 });
 
+$app->group("/admin", function () use ($app) {
+
+    $app->get("/accounts", function () use ($app) {
+        if (authenticateUser()) {
+            $cursor = accounts()->find(array(), array("_id" => 0, "id" => 1, "username" => 1, "uuid" => 1, "lastUsed" => 1, "enabled" => 1, "hasError" => 1, "lastError" => 1));
+            $json = dbToJson($cursor, true);
+
+            echo "<head>";
+            echo '<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">';
+            echo "
+<style>
+.account-disabled > h2{
+color:#777;
+}
+.account-error{
+border:solid red;
+}
+.account-error > h2{
+color:red;
+}
+</style>";
+            echo "</head>";
+            echo "<div class='container'>";
+            echo "<h1>MineSkin Accounts</h1>";
+            foreach ($json as $account) {
+                if (!isset($account["hasError"])) {
+                    $account["hasError"] = false;
+                }
+                if (!isset($account["lastError"])) {
+                    $account["lastError"] = "?";
+                }
+
+                echo "<form action='/admin/accounts/update/" . $account["id"] . "' method='post'>";
+                echo "<div id='account-" . $account["id"] . "' class='account " . ($account["enabled"] ? "account-enabled" : "account-disabled") . " " . ($account["hasError"] ? "account-error" : "") . "'>";
+                echo "<h2>#" . $account["id"] . "&nbsp;" . $account["username"] . "</h2>";
+                if ($account["id"] == $_GET["updatedId"]) {
+                    echo "<i>Updated!</i><br/>";
+                }
+                echo "<strong>Username</strong>&nbsp;<input id='username' name='username' type='text' readonly value='" . $account["username"] . "'><br/>";
+                echo "<strong>UUID</strong>&nbsp;<input id='uuid' name='uuid' type='text' readonly value='" . $account["uuid"] . "'><br/>";
+                echo "<strong>Last Used</strong>&nbsp;<input id='lastUsed' name='lastUsed' type='number' value='" . $account["lastUsed"] . "'><br/>";
+                echo "<strong>Enabled</strong>&nbsp;<input id='enabled' name='enabled' type='checkbox' " . ($account["enabled"] ? "checked" : "") . "><br/>";
+                echo "<strong>Has Error</strong>&nbsp;<input id='hasError' name='hasError' type='checkbox' " . ($account["hasError"] ? "checked" : "") . "><br/>";
+                if ($account["hasError"]) {
+                    echo "<input type='text' readonly value='" . $account["lastError"] . "'><br/>";
+                }
+                echo "<br/><button type='submit'>Update</button>";
+                echo "<hr/>";
+                echo "</div>";
+                echo "</form>";
+            }
+            echo "</div>";
+        } else {
+            exit();
+        }
+    });
+
+    $app->post("/accounts/update/:id", function ($id) use ($app) {
+        if (authenticateUser()) {
+            if (!isset($_POST["username"]) || !isset($_POST["uuid"])) {
+                echoData(array("error" => "missing data"));
+                exit();
+            }
+
+            $enabled = isset($_POST["enabled"]) && $_POST["enabled"];
+            $hasError = isset($_POST["hasError"]) && $_POST["hasError"];
+            $lastUsed = (int)$_POST["lastUsed"];
+
+            accounts()->update(
+                array("id" => (int)$id, "username" => $_POST["username"], "uuid" => $_POST["uuid"]),
+                array('$set' => array(
+                    "enabled" => $enabled,
+                    "hasError" => $hasError,
+                    "lastUsed" => $lastUsed
+                )));
+
+            header("Location: /admin/accounts?updatedId=" . $id . "#account-" . $id);
+        }
+    });
+
+});
+
 $app->run();
 
 function generateData($app, $temp, $name, $model, $visibility, $type, $image)
@@ -604,6 +686,40 @@ function dbToJson($cursor, $forceArray = false)
     return $json;
 }
 
+function authenticateUser()
+{
+    session_start();
+    if (!isset($_SERVER["PHP_AUTH_USER"])) {
+        header('WWW-Authenticate: Basic realm="Mineskin Admin"');
+        header('HTTP/1.0 401 Unauthorized');
+        echoData(array("error" => "Unauthorized access"));
+        exit();
+    } else if (empty($_SERVER["PHP_AUTH_USER"]) || empty($_SERVER["PHP_AUTH_PW"])) {
+        echoData(array("error" => "Unauthorized access. Missing username or password."));
+        exit(403);
+    } else {
+        $user = $_SERVER["PHP_AUTH_USER"];
+        $user = str_replace("../", "", $user);
+        $user = str_replace("./", "", $user);
+        $userFile = "../internal/auth/passwords/" . md5($user) . ".txt";
+        if (!file_exists($userFile)) {
+            echoData(array("error" => "Unauthorized access. User does not exist."));
+            exit(403);
+        } else {
+            $passwordHash = hash("sha512", $_SERVER["PHP_AUTH_PW"]);
+            $fileHash = file_get_contents($userFile);
+            if ($fileHash !== $passwordHash) {
+                echoData(array("error" => "Unauthorized access. Invalid password."));
+                exit(403);
+            } else {
+                // Authorized
+                $_SESSION["username"] = $user;
+
+                return true;
+            }
+        }
+    }
+}
 
 function accounts()
 {
