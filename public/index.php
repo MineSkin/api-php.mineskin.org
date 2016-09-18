@@ -174,7 +174,7 @@ $app->group("/get", function () use ($app) {
 
         $cursor = traffic()->find(array("ip" => $ip));
         if ($cursor->count() >= 1) {
-            $json = dbToJson($cursor,true)[0];
+            $json = dbToJson($cursor, true)[0];
             $lastRequest = $json["lastRequest"];
 
             echoData(array(
@@ -215,6 +215,13 @@ $app->group("/get", function () use ($app) {
             "accounts" => $accounts,
             "delay" => $delay
         ));
+    });
+
+    $app->get("/accounts", function () use ($app) {
+        $cursor = accounts()->find(array(), array("_id" => 0, "id" => 1, "uuid" => 1, "lastUsed" => 1, "enabled" => 1));
+        $json = dbToJson($cursor, true);
+
+        echoData($json);
     });
 
     $app->get("/id/:id", function ($id) use ($app) {
@@ -456,7 +463,7 @@ function checkTraffic($app, $cancelRequest = true)
 
     $cursor = traffic()->find(array("ip" => $ip));
     if ($cursor->count() >= 1) {
-        $json = dbToJson($cursor,true)[0];
+        $json = dbToJson($cursor, true)[0];
         $lastRequest = $json["lastRequest"];
 
         $delay = getGeneratorDelay();
