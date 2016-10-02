@@ -597,7 +597,7 @@ function validateImage($file, $cancelRequest = true)
     }
     if (image_type_to_mime_type($type) !== "image/png") {
         if ($cancelRequest) {
-            echoData(array("error" => "Invalid mime type. Must me image/png"));
+            echoData(array("error" => "Invalid mime type. Must be image/png"), 400);
         }
         return false;
     }
