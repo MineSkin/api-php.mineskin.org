@@ -66,7 +66,7 @@ $app->group("/generate", function () use ($app) {
         }
 
         $size = $_FILES["file"]["size"];
-        if ($size <= 0 || $size > 102400/*(100MB)*/) {
+        if ($size <= 0 || $size > 16000 /*(16KB)*/) {
             echoData(array("error" => "invalid file size"));
             return;
         }
