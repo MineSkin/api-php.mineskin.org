@@ -543,7 +543,9 @@ function generateData($app, $temp, $name, $model, $visibility, $type, $image)
                 array('$set' => array(
                     "hasError" => true,
                     "enabled" => false,
-                    "lastError" => $skin_error)));
+                    "lastError" => $skin_error,
+                    "lastGen.type" => $type,
+                    "lastGen.image" => $image)));
             return;
         }
     }
