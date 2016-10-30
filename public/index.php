@@ -383,7 +383,7 @@ $app->group("/admin", function () use ($app) {
 
     $app->get("/accounts", function () use ($app) {
         if (authenticateUser()) {
-            $cursor = accounts()->find(array(), array("_id" => 0, "id" => 1, "username" => 1, "uuid" => 1, "lastUsed" => 1, "enabled" => 1, "hasError" => 1, "lastError" => 1));
+            $cursor = accounts()->find(array(), array("_id" => 0, "id" => 1, "username" => 1, "uuid" => 1, "lastUsed" => 1, "enabled" => 1, "hasError" => 1, "lastError" => 1, "lastGen.type" => 1, "lastGen.image" => 1));
             $json = dbToJson($cursor, true);
 
             echo "<head>";
@@ -424,6 +424,7 @@ color:red;
                 echo "<strong>Has Error</strong>&nbsp;<input id='hasError' name='hasError' type='checkbox' " . ($account["hasError"] ? "checked" : "") . "><br/>";
                 if ($account["hasError"]) {
                     echo "<input id='lastError' name='lastError' type='text' style='width:100%;' value='" . $account["lastError"] . "'><br/>";
+                    echo "<strong>Last Image (" . $account["lastGen"]["type"] . ")</strong>: " . $account["lastGen"]["image"];
                 } else {
                     echo "<input id='lastError' name='lastError' type='hidden' value=''>";
                 }
