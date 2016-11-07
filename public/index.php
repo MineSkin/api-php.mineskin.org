@@ -254,7 +254,7 @@ $app->group("/get", function () use ($app) {
         echoData(array("skins" => $json, "page" => array(
             "index" => $page,
             "amount" => round($amount / $size),
-            "totalSkins" => $amount
+            "total" => $amount
         ), "filter" => $filter));
     });
 
