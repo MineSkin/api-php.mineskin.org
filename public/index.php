@@ -261,8 +261,12 @@ $app->group("/get", function () use ($app) {
     $app->get("/top(/:page)", function ($page = 1) use ($app) {
         $page = max((int)$page, 1);
         $size = max((int)$app->request()->params("size", 16), 1);
+        $filter = $app->request()->params("filter");
 
         $query = array("visibility" => 0, "views" => array('$gt' => 0));
+        if (!empty($filter)) {
+            $query["name"] = array('$regex' => new MongoRegex("/$filter/i"));
+        }
         $cursor = skins()
             ->find($query,
                 array("_id" => 0, "id" => 1, "name" => 1, "url" => 1, "views" => 1))
