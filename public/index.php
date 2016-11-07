@@ -539,6 +539,11 @@ function generateData($app, $temp, $name, $model, $visibility, $type, $image)
             echoData(array("error" => "failed to generate skin",
                 "details" => $skin_error), 500);
 
+            if ("ResponseCode: 400, Message: Could not set skin from the provided url." === $skin_error) {
+                // Ignore this error since it's caused by an invalid skin image, not the account
+                return;
+            }
+
             accounts()->update(
                 array("username" => $account["username"]),
                 array('$set' => array(
