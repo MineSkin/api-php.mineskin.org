@@ -278,7 +278,7 @@ $app->group("/get", function () use ($app) {
             "index" => $page,
             "amount" => round($amount / $size),
             "total" => $amount
-        )));
+        ), "filter" => $filter));
     });
 
 });
