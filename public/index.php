@@ -586,18 +586,34 @@ function generateData($app, $temp, $name, $model, $visibility, $type, $image)
 
                 skins()->insert($data);
                 echoSkinData(null, $data, true);
+                return;
             } else {
                 echoData(array("error" => "failed to get skin data. Return code #" . $skinDataError), 500);
                 return;
             }
+
         } else {
-            echoData(array("error" => "failed to generate skin",
-                "details" => $skin_error), 500);
+            // Update the lastUsed field anyway, to prevent a (probably) faulty account from being used again
+            accounts()->update(
+                array("username" => $account["username"]),
+                array('$set' => array("lastUsed" => $time)));
 
             if ("ResponseCode: 400, Message: Could not set skin from the provided url." === $skin_error) {
                 // Ignore this error since it's caused by an invalid skin image, not the account
+
+                echoData(array("error" => "Couldn't generate data from the provided image",
+                    "details" => $skin_error), 500);
                 return;
             }
+            if (strpos($skin_error, "Invalid credentials. Invalid username or password.") !== false) {
+
+                echoData(array("error" => "Failed to log into the account (#" . $account["id"] . "). Please try again later",
+                    "details" => $skin_error), 500);
+                return;
+            }
+
+            echoData(array("error" => "Unknown account error. Try again later.",
+                "details" => $skin_error), 500);
 
             accounts()->update(
                 array("username" => $account["username"]),
@@ -607,6 +623,7 @@ function generateData($app, $temp, $name, $model, $visibility, $type, $image)
                     "lastError" => $skin_error,
                     "lastGen.type" => $type,
                     "lastGen.image" => $image)));
+
             return;
         }
     }
