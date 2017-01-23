@@ -407,6 +407,8 @@ color:red;
             echo "</head>";
             echo "<div class='container'>";
             echo "<h1>MineSkin Accounts</h1>";
+
+            $lastId = -1;
             foreach ($json as $account) {
                 if (!isset($account["hasError"])) {
                     $account["hasError"] = false;
@@ -436,7 +438,22 @@ color:red;
                 echo "<hr/>";
                 echo "</div>";
                 echo "</form>";
+
+                if ($account["id"] > $lastId) {
+                    $lastId = $account["id"];
+                }
             }
+
+            echo "<br/><hr/>";
+            echo "<form action='/admin/accounts/add' method='post'>";
+            echo "<strong>ID</strong>&nbsp;<input id='id' name='id' type='number' readonly value='" . ($lastId + 1) . "'><br/>";
+            echo "<strong>Username</strong>&nbsp;<input id='username' name='username' type='text' required><br/>";
+            echo "<strong>Password</strong>&nbsp;<input id='password' name='password' type='password' required><br/>";
+            echo "<strong>UUID</strong>&nbsp;<input id='uuid' name='uuid' type='text' required><br/>";
+            echo "<strong>Security Answer</strong>&nbsp;<input id='security' name='security' type='text'><br/>";
+            echo "<br/><button type='submit'>Add Account</button>";
+            echo "</form>";
+
             echo "</div>";
         } else {
             exit();
@@ -463,6 +480,40 @@ color:red;
                     "lastError" => $lastError,
                     "lastUsed" => $lastUsed
                 )));
+
+            header("Location: /admin/accounts?updatedId=" . $id . "#account-" . $id);
+        }
+    });
+
+    $app->post("/accounts/add", function () use ($app) {
+        if (authenticateUser()) {
+            if (!isset($_POST["id"]) || !isset($_POST["username"]) || !isset($_POST["uuid"]) || !isset($_POST["password"]) || !isset($_POST["security"])) {
+                echoData(array("error" => "missing data"));
+                exit();
+            }
+
+            $id = (int)$_POST["id"];
+            $username = $_POST["username"];
+            $uuid = $_POST["uuid"];
+            $password = $_POST["password"];
+            $security = $_POST["security"];
+
+            accounts()->insert(array(
+                "id" => $id,
+                "username" => $username,
+                "password" => encryptPassword($password),
+                "security" => $security,
+                "uuid" => $uuid,
+
+                "lastUsed" => 0,
+                "enabled" => false,
+                "hasError" => false,
+                "lastError" => "",
+                "lastGen" => array(
+                    "type" => "",
+                    "image" => ""
+                )
+            ));
 
             header("Location: /admin/accounts?updatedId=" . $id . "#account-" . $id);
         }
