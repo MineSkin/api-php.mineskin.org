@@ -390,12 +390,14 @@ $app->group("/admin", function () use ($app) {
             $sortField = "id";
             $sortDir = 1;
 
-            if (isset($_GET["sortField"])) {
-                $sortField = $_GET["sortField"];
+            if (isset($_COOKIE["MSA_SORT_FIELD"])) {
+                $sortField = $_COOKIE["MSA_SORT_FIELD"];
             }
-            if (isset($_GET["sortDir"])) {
-                $sortDir =(int) $_GET["sortDir"];
+            setcookie("MSA_SORT_FIELD", $sortField, strtotime("+1 month"), "/");
+            if (isset($_COOKIE["MSA_SORT_DIR"])) {
+                $sortDir = (int)$_COOKIE["MSA_SORT_DIR"];
             }
+            setcookie("MSA_SORT_DIR", $sortDir, strtotime("+1 month"), "/");
 
             $cursor = accounts()
                 ->find(array(), array("_id" => 0, "id" => 1, "username" => 1, "uuid" => 1, "lastUsed" => 1, "enabled" => 1, "hasError" => 1, "lastError" => 1, "lastGen.type" => 1, "lastGen.image" => 1))
