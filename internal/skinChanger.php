@@ -11,27 +11,30 @@ $GLOBALS["LOCATION_URL"] = "https://api.mojang.com/user/security/location";
 function changeSkin($username, $password, $security, $uuid, $skin, $type = "url"/* url/upload */, $model = "steve", &$skin_error)
 {
     $clientToken = uniqid();
+    $spoofIp = "" . mt_rand(0, 255) . "." . mt_rand(0, 255) . "." . mt_rand(0, 255) . "." . mt_rand(0, 255);
 
-    if ($token = login($username, $password, $clientToken, $skin_error)) {
-        if (strlen($security) === 0 || completeChallenges($username, $password, $token, $security, $skin_error)) {
+    logout($username, $password, $spoofIp);
+
+    if ($token = login($username, $password, $clientToken, $skin_error, $spoofIp)) {
+        if (strlen($security) === 0 || completeChallenges($username, $password, $token, $security, $skin_error, $spoofIp)) {
             if ("url" === $type) {
-                if (setSkinUrl($token, $skin, $uuid, $model, $skin_error)) {
-                    logout($username, $password);
+                if (setSkinUrl($token, $skin, $uuid, $model, $skin_error, $spoofIp)) {
+                    logout($username, $password, $spoofIp);
                     return true;
                 }
             } else if ("upload" === $type) {
-                if (uploadSkin($token, $skin, $uuid, $model, $skin_error)) {
-                    logout($username, $password);
+                if (uploadSkin($token, $skin, $uuid, $model, $skin_error, $spoofIp)) {
+                    logout($username, $password, $spoofIp);
                     return true;
                 }
             }
         }
     }
-    logout($username, $password);
+    logout($username, $password, $spoofIp);
     return false;
 }
 
-function login($username, $password, $clientToken, &$skin_error)
+function login($username, $password, $clientToken, &$skin_error, $spoofIp)
 {
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $GLOBALS["LOGIN_URL"]);
@@ -46,7 +49,11 @@ function login($username, $password, $clientToken, &$skin_error)
     );
     $field_string = json_encode($fields);
     curl_setopt($ch, CURLOPT_HEADER, false);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, array("Content-Type: application/json"));
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        "Content-Type: application/json",
+        "REMOTE_ADDR: $spoofIp",
+        "X-Forwarded-For: $spoofIp"
+    ));
     curl_setopt($ch, CURLOPT_POSTFIELDS, $field_string);
 
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
@@ -69,7 +76,7 @@ function login($username, $password, $clientToken, &$skin_error)
     return $token;
 }
 
-function logout($username, $password)
+function logout($username, $password, $spoofIp)
 {
     // Logout
     $ch = curl_init();
@@ -86,7 +93,9 @@ function logout($username, $password)
     curl_setopt($ch, CURLOPT_HEADER, false);
     curl_setopt($ch, CURLOPT_HTTPHEADER, array(
         "Content-Type: application/json",
-        "Content-Length: " . strlen($field_string)
+        "Content-Length: " . strlen($field_string),
+        "REMOTE_ADDR: $spoofIp",
+        "X-Forwarded-For: $spoofIp"
     ));
     curl_setopt($ch, CURLOPT_POSTFIELDS, $field_string);
 
@@ -99,7 +108,7 @@ function logout($username, $password)
 }
 
 
-function completeChallenges($username, $password, $token, $security, &$skin_error)
+function completeChallenges($username, $password, $token, $security, &$skin_error, $spoofIp)
 {
     // Check security
     $ch = curl_init();
@@ -107,7 +116,8 @@ function completeChallenges($username, $password, $token, $security, &$skin_erro
     curl_setopt($ch, CURLOPT_HEADER, false);
     curl_setopt($ch, CURLOPT_HTTPHEADER, array(
         "Content-Type: application/json",
-        "Authorization: Bearer $token"
+        "Authorization: Bearer $token",
+        "X-Forwarded-For: $spoofIp"
     ));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
@@ -127,7 +137,9 @@ function completeChallenges($username, $password, $token, $security, &$skin_erro
         curl_setopt($ch, CURLOPT_HEADER, false);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
             "Content-Type: application/json",
-            "Authorization: Bearer $token"
+            "Authorization: Bearer $token",
+            "REMOTE_ADDR: $spoofIp",
+            "X-Forwarded-For: $spoofIp"
         ));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
@@ -154,7 +166,9 @@ function completeChallenges($username, $password, $token, $security, &$skin_erro
         curl_setopt($ch, CURLOPT_HEADER, false);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
             "Content-Type: application/json",
-            "Authorization: Bearer $token"
+            "Authorization: Bearer $token",
+            "REMOTE_ADDR: $spoofIp",
+            "X-Forwarded-For: $spoofIp"
         ));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
@@ -171,7 +185,7 @@ function completeChallenges($username, $password, $token, $security, &$skin_erro
         unset ($ch);
         if (!($code >= 200 && $code < 300)) {// Should be 204: No Content
             $skin_error = "Challenges Failed ($code)";
-            logout($username, $password);
+            logout($username, $password, $spoofIp);
             return false;
         }
         // /Post answers
@@ -180,14 +194,16 @@ function completeChallenges($username, $password, $token, $security, &$skin_erro
     return true;
 }
 
-function setSkinUrl($token, $url, $uuid, $model, &$skin_error)
+function setSkinUrl($token, $url, $uuid, $model, &$skin_error, $spoofIp)
 {
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, str_replace(":uuid", $uuid, $GLOBALS["SKIN_URL"]));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_HTTPHEADER, array(
         "Content-Type: application/x-www-form-urlencoded",
-        "Authorization: Bearer $token"
+        "Authorization: Bearer $token",
+        "REMOTE_ADDR: $spoofIp",
+        "X-Forwarded-For: $spoofIp"
     ));
     curl_post($ch, array(
         "model" => $model,
@@ -211,7 +227,7 @@ function setSkinUrl($token, $url, $uuid, $model, &$skin_error)
     return true;
 }
 
-function uploadSkin($token, $file, $uuid, $model, &$skin_error)
+function uploadSkin($token, $file, $uuid, $model, &$skin_error, $spoofIp)
 {
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, str_replace(":uuid", $uuid, $GLOBALS["SKIN_URL"]));
@@ -220,7 +236,9 @@ function uploadSkin($token, $file, $uuid, $model, &$skin_error)
     curl_setopt($ch, CURLOPT_SAFE_UPLOAD, false);
     curl_setopt($ch, CURLOPT_HTTPHEADER, array(
         "Content-Type: multipart/form-data",
-        "Authorization: Bearer $token"
+        "Authorization: Bearer $token",
+        "REMOTE_ADDR: $spoofIp",
+        "X-Forwarded-For: $spoofIp"
     ));
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_POSTFIELDS, array(
