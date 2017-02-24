@@ -702,7 +702,7 @@ function validateImage($file, $cancelRequest = true)
 function getGeneratorDelay()
 {
     $count = accounts()->find(array("enabled" => true))->count();
-    return round(40 / max(1, $count), 2);
+    return round(60 / max(1, $count), 2);
 }
 
 function echoSkinData($cursor, &$json = null, $delay = true, $return = false)
