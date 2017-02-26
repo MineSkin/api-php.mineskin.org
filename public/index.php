@@ -580,7 +580,7 @@ function generateData($app, $temp, $name, $model, $visibility, $type, $image)
 
             if ($skinData = getSkinData($account["uuid"], $skinDataError)) {
                 $textureUrl = json_decode(base64_decode($skinData["value"]), true)["textures"]["SKIN"]["url"];
-                $isWebsiteGen = strpos($_SERVER["HTTP_REFERER"], "https://mineskin.org") === 0;
+                $isWebsiteGen = isset($_SERVER["HTTP_REFERER"]) && strpos($_SERVER["HTTP_REFERER"], "https://mineskin.org") === 0;
                 $data = array(
                     "_id" => $hash,
                     "id" => (int)($lastId + 1),
