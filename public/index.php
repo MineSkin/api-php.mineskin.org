@@ -580,6 +580,7 @@ function generateData($app, $temp, $name, $model, $visibility, $type, $image)
 
             if ($skinData = getSkinData($account["uuid"], $skinDataError)) {
                 $textureUrl = json_decode(base64_decode($skinData["value"]), true)["textures"]["SKIN"]["url"];
+                $isWebsiteGen = strpos($_SERVER["HTTP_REFERER"], "https://mineskin.org") === 0;
                 $data = array(
                     "_id" => $hash,
                     "id" => (int)($lastId + 1),
@@ -595,7 +596,8 @@ function generateData($app, $temp, $name, $model, $visibility, $type, $image)
                     "account" => (int)$account["id"],
                     "type" => $type,
                     "duplicate" => 0,
-                    "views" => 1
+                    "views" => 1,
+                    "via" => $isWebsiteGen ? "website" : "api"
                 );
 
                 skins()->insert($data);
