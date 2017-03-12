@@ -465,6 +465,7 @@ color:red;
                 )));
 
             header("Location: /admin/accounts?updatedId=" . $id . "#account-" . $id);
+            $app->response->setStatus(303);
         }
     });
 
