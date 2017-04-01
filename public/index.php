@@ -563,7 +563,24 @@ function generateData($app, $temp, $name, $model, $visibility, $type, $image)
         }
         $account = dbToJson($cursor, true)[0];
 
-        if (changeSkin($account["username"], $account["password"], $account["security"], $account["uuid"], $image, $type, $model, $skin_error)) {
+        $accessToken = false;
+        $clientToken = false;
+        if (isset($account["accessToken"]) && !empty($account["accessToken"])) {
+            $accessToken = $account["accessToken"];
+        }
+        if (isset($account["clientToken"]) && !empty($account["clientToken"])) {
+            $clientToken = $account["clientToken"];
+        }
+        if ($time - $account["lastUsed"] > 1800) {// 30 minutes
+            $accessToken = false;
+            $clientToken = false;
+        }
+        if (changeSkin($account["username"], $account["password"], $account["security"], $account["uuid"], $image, $type, $model, $skin_error, $accessToken, $clientToken, function ($accessToken, $clientToken, $method) use ($account) {
+            accounts()->update(
+                array("username" => $account["username"]),
+                array('$set' => array("accessToken" => $accessToken, "clientToken" => $clientToken, "method" => $method))
+            );
+        })) {
             accounts()->update(
                 array("username" => $account["username"]),
                 array('$set' => array("lastUsed" => $time)));

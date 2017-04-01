@@ -1,6 +1,7 @@
 <?php
 
 $GLOBALS["LOGIN_URL"] = "https://authserver.mojang.com/authenticate";
+$GLOBALS["REFRESH_URL"] = "https://authserver.mojang.com/refresh";
 $GLOBALS["SIGNOUT_URL"] = "https://authserver.mojang.com/signout";
 $GLOBALS["SKIN_URL"] = "https://api.mojang.com/user/profile/:uuid/skin";
 $GLOBALS["CHALLENGES_URL"] = "https://api.mojang.com/user/security/challenges";
@@ -8,25 +9,38 @@ $GLOBALS["LOCATION_URL"] = "https://api.mojang.com/user/security/location";
 
 
 //// Main Function
-function changeSkin($username, $password, $security, $uuid, $skin, $type = "url"/* url/upload */, $model = "steve", &$skin_error)
+function changeSkin($username, $password, $security, $uuid, $skin, $type = "url"/* url/upload */, $model = "steve", &$skin_error, $accessToken, $clientToken, $tokenCallback)
 {
-    $clientToken = uniqid();
     $spoofIp = "" . mt_rand(0, 255) . "." . mt_rand(0, 255) . "." . mt_rand(0, 255) . "." . mt_rand(0, 255);
 
-    logout($username, $password, $spoofIp);
+    // TODO: call /validate to check if the token is still valid
+    $method = "n/a";
+    if ($accessToken !== false && $clientToken !== false) {
+        $accessToken = refresh($clientToken, $accessToken, $spoofIp);
+        $method = "accessToken";
+    } else {
+        $clientToken = uniqid();
+        logout($username, $password, $spoofIp);
+        if ($accessToken = login($username, $password, $clientToken, $skin_error, $spoofIp)) {
+            $method = "login";
+            // Success
+        } else {
+            logout($username, $password, $spoofIp);
+            return false;
+        }
+    }
+    $tokenCallback($accessToken, $clientToken, $method);
 
-    if ($token = login($username, $password, $clientToken, $skin_error, $spoofIp)) {
-        if (strlen($security) === 0 || completeChallenges($username, $password, $token, $security, $skin_error, $spoofIp)) {
-            if ("url" === $type) {
-                if (setSkinUrl($token, $skin, $uuid, $model, $skin_error, $spoofIp)) {
-                    logout($username, $password, $spoofIp);
-                    return true;
-                }
-            } else if ("upload" === $type) {
-                if (uploadSkin($token, $skin, $uuid, $model, $skin_error, $spoofIp)) {
-                    logout($username, $password, $spoofIp);
-                    return true;
-                }
+    if ((strlen($security) === 0 || empty($security)) || completeChallenges($username, $password, $accessToken, $security, $skin_error, $spoofIp)) {
+        if ("url" === $type) {
+            if (setSkinUrl($accessToken, $skin, $uuid, $model, $skin_error, $spoofIp)) {
+                logout($username, $password, $spoofIp);
+                return true;
+            }
+        } else if ("upload" === $type) {
+            if (uploadSkin($accessToken, $skin, $uuid, $model, $skin_error, $spoofIp)) {
+                logout($username, $password, $spoofIp);
+                return true;
             }
         }
     }
@@ -64,6 +78,47 @@ function login($username, $password, $clientToken, &$skin_error, $spoofIp)
     curl_close($ch);
     if ($code !== 200) {
         $skin_error = "Login Failed. (" . $code . ", " . (substr($username, 0, 4)) . "): " . $result;
+        return false;
+    }
+    $json_result = json_decode($result, true);
+    if (!isset ($json_result ["accessToken"])) {
+        $skin_error = "Failed to retrieve access token. " . $result;
+        return false;
+    }
+    $token = $json_result ["accessToken"];
+
+    return $token;
+}
+
+function refresh($clientToken, $accessToken, $spoofIp)
+{
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $GLOBALS["REFRESH_URL"]);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    $fields = array(
+        "clientToken" => $clientToken,
+        "accessToken" => $accessToken
+    );
+    $field_string = json_encode($fields);
+    curl_setopt($ch, CURLOPT_HEADER, false);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        "Content-Type: application/json",
+        "REMOTE_ADDR: $spoofIp",
+        "X-Forwarded-For: $spoofIp"
+    ));
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $field_string);
+
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+    $result = curl_exec($ch);
+    $code = curl_getinfo($ch) ["http_code"];
+    curl_close($ch);
+    if ($code !== 200) {
+        $skin_error = "Session Refresh failed. (" . $code . "): " . $result;
         return false;
     }
     $json_result = json_decode($result, true);
@@ -152,13 +207,20 @@ function completeChallenges($username, $password, $token, $security, &$skin_erro
         curl_close($ch);
         unset ($ch);
 
-        // Post answers
-        $answers = array();
-        foreach ($result as $answer) {
-            $answers [] = array(
-                "id" => $answer ["answer"] ["id"],
-                "answer" => $security
-            );
+        try {
+            // Post answers
+            $answers = array();
+            foreach ($result as $answer) {
+                if (isset($answer ["answer"])) {
+                    $answers [] = array(
+                        "id" => $answer ["answer"] ["id"],
+                        "answer" => $security
+                    );
+                }
+            }
+        } catch (Exception $e) {
+            echo $result;
+            throw $e;
         }
 
         $ch = curl_init();
