@@ -2,6 +2,7 @@
 
 $GLOBALS["LOGIN_URL"] = "https://authserver.mojang.com/authenticate";
 $GLOBALS["REFRESH_URL"] = "https://authserver.mojang.com/refresh";
+$GLOBALS["VALIDATE_URL"] = "https://authserver.mojang.com/validate";
 $GLOBALS["SIGNOUT_URL"] = "https://authserver.mojang.com/signout";
 $GLOBALS["SKIN_URL"] = "https://api.mojang.com/user/profile/:uuid/skin";
 $GLOBALS["CHALLENGES_URL"] = "https://api.mojang.com/user/security/challenges";
@@ -13,39 +14,58 @@ function changeSkin($username, $password, $security, $uuid, $skin, $type = "url"
 {
     $spoofIp = "" . mt_rand(0, 255) . "." . mt_rand(0, 255) . "." . mt_rand(0, 255) . "." . mt_rand(0, 255);
 
-    // TODO: call /validate to check if the token is still valid
-    $method = "n/a";
-    if ($accessToken !== false && $clientToken !== false) {
-        $accessToken = refresh($clientToken, $accessToken, $spoofIp);
-        $method = "accessToken";
+    sleep(1);
+    if (useTokenOrLogin($username, $password, $clientToken, $accessToken, $tokenCallback, $skin_error, $spoofIp) !== false) {
+        sleep(1);
+        if ((strlen($security) === 0 || empty($security)) || completeChallenges($username, $password, $accessToken, $security, $skin_error, $spoofIp)) {
+            sleep(1);
+            if ("url" === $type) {
+                if (setSkinUrl($accessToken, $skin, $uuid, $model, $skin_error, $spoofIp)) {
+//                    logout($username, $password, $spoofIp);
+                    return true;
+                }
+            } else if ("upload" === $type) {
+                if (uploadSkin($accessToken, $skin, $uuid, $model, $skin_error, $spoofIp)) {
+//                    logout($username, $password, $spoofIp);
+                    return true;
+                }
+            }
+        }
     } else {
-        $clientToken = uniqid();
-        logout($username, $password, $spoofIp);
-        if ($accessToken = login($username, $password, $clientToken, $skin_error, $spoofIp)) {
-            $method = "login";
-            // Success
-        } else {
-            logout($username, $password, $spoofIp);
-            return false;
+        if (!isset($skin_error) || empty($skin_error)) {
+            $skin_error = "Login failed for unknown reason";
         }
     }
-    $tokenCallback($accessToken, $clientToken, $method);
-
-    if ((strlen($security) === 0 || empty($security)) || completeChallenges($username, $password, $accessToken, $security, $skin_error, $spoofIp)) {
-        if ("url" === $type) {
-            if (setSkinUrl($accessToken, $skin, $uuid, $model, $skin_error, $spoofIp)) {
-                logout($username, $password, $spoofIp);
-                return true;
-            }
-        } else if ("upload" === $type) {
-            if (uploadSkin($accessToken, $skin, $uuid, $model, $skin_error, $spoofIp)) {
-                logout($username, $password, $spoofIp);
-                return true;
-            }
-        }
-    }
-    logout($username, $password, $spoofIp);
+//    logout($username, $password, $spoofIp);
     return false;
+}
+
+function useTokenOrLogin($username, $password, &$clientToken, &$accessToken, $tokenCallback, &$skin_error, $spoofIp)
+{
+    $method = "n/a";
+    if ($clientToken !== false && $accessToken !== false) {
+        if (validate($clientToken, $accessToken, $spoofIp)) {
+            sleep(1);
+            // Token still valid
+            $accessToken = refresh($clientToken, $accessToken, $spoofIp);
+            $method = "accessToken";
+            $tokenCallback($accessToken, $clientToken, $method);
+            return true;
+        }
+        $skin_error = "Login via accessToken failed";
+    }
+
+    $clientToken = uniqid();
+    logout($username, $password, $spoofIp);
+    sleep(1);
+    if ($accessToken = login($username, $password, $clientToken, $skin_error, $spoofIp)) {
+        $method = "login";
+        $tokenCallback($accessToken, $clientToken, $method);
+        return true;
+    } else {
+        logout($username, $password, $spoofIp);
+        return false;
+    }
 }
 
 function login($username, $password, $clientToken, &$skin_error, $spoofIp)
@@ -88,6 +108,37 @@ function login($username, $password, $clientToken, &$skin_error, $spoofIp)
     $token = $json_result ["accessToken"];
 
     return $token;
+}
+
+function validate($clientToken, $accessToken, $spoofIp)
+{
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $GLOBALS["VALIDATE_URL"]);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    $fields = array(
+        "clientToken" => $clientToken,
+        "accessToken" => $accessToken
+    );
+    $field_string = json_encode($fields);
+    curl_setopt($ch, CURLOPT_HEADER, false);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        "Content-Type: application/json",
+        "REMOTE_ADDR: $spoofIp",
+        "X-Forwarded-For: $spoofIp"
+    ));
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $field_string);
+
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+    $result = curl_exec($ch);
+    $code = curl_getinfo($ch) ["http_code"];
+    curl_close($ch);
+
+    return $code < 400;
 }
 
 function refresh($clientToken, $accessToken, $spoofIp)
@@ -211,12 +262,12 @@ function completeChallenges($username, $password, $token, $security, &$skin_erro
             // Post answers
             $answers = array();
             foreach ($result as $answer) {
-                if (isset($answer ["answer"])) {
+//                if (isset($answer ["answer"])) {
                     $answers [] = array(
                         "id" => $answer ["answer"] ["id"],
                         "answer" => $security
                     );
-                }
+//                }
             }
         } catch (Exception $e) {
             echo $result;
@@ -247,7 +298,7 @@ function completeChallenges($username, $password, $token, $security, &$skin_erro
         unset ($ch);
         if (!($code >= 200 && $code < 300)) {// Should be 204: No Content
             $skin_error = "Challenges Failed ($code)";
-            logout($username, $password, $spoofIp);
+//            logout($username, $password, $spoofIp);
             return false;
         }
         // /Post answers
@@ -282,7 +333,7 @@ function setSkinUrl($token, $url, $uuid, $model, &$skin_error, $spoofIp)
     $success = $code >= 200 && $code < 300;
     if (!$success) {
         $json_result = json_decode($result, true);
-        $skin_error = "ResponseCode: $code, Message: " . $json_result ["errorMessage"];
+        $skin_error = "Url: " . $GLOBALS["SKIN_URL"] . ", ResponseCode: $code, Message: " . $json_result ["errorMessage"];
         return false;
     }
 
@@ -318,7 +369,7 @@ function uploadSkin($token, $file, $uuid, $model, &$skin_error, $spoofIp)
     $success = $code >= 200 && $code < 300;
     if (!$success) {
         $json_result = json_decode($result, true);
-        $skin_error = "ResponseCode: $code, Message: " . $json_result ["errorMessage"];
+        $skin_error = "Url: " . $GLOBALS["SKIN_URL"] . ", ResponseCode: $code, Message: " . $json_result ["errorMessage"];
         return false;
     }
 
