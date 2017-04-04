@@ -189,7 +189,9 @@ $app->group("/get", function () use ($app) {
         }
     });
 
-    $app->get("/stats", function () use ($app) {
+    $app->get("/stats(/:details)", function ($details = false) use ($app) {
+        $details = isset($details) && ($details == true || $details === "details");
+
         $cursor = skins()->find();
         $count = $cursor->count();
         $duplicate = 0;
@@ -206,7 +208,7 @@ $app->group("/get", function () use ($app) {
 
         $delay = getGeneratorDelay();
 
-        echoData(array(
+        $stats = array(
             "total" => ($count + $duplicate),
             "unique" => $count,
             "duplicate" => $duplicate,
@@ -214,7 +216,29 @@ $app->group("/get", function () use ($app) {
             "lastDay" => $lastDay,
             "accounts" => $accounts,
             "delay" => $delay
-        ));
+        );
+
+        if ($details) {
+            $genUpload = skins()->find(array("type" => "upload"))->count();
+            $genUrl = skins()->find(array("type" => "url"))->count();
+            $genUser = skins()->find(array("type" => "user"))->count();
+
+            $withNames = skins()->find(array("name" => array('$exists' => true, '$ne' => "")))->count();
+
+            $lastMonth = skins()->find(array("time" => array('$gt' => strtotime("1 month ago"))))->count();
+            $lastYear = skins()->find(array("time" => array('$gt' => strtotime("1 year ago"))))->count();
+
+            $stats["details"] = array(
+                "genUpload" => $genUpload,
+                "genUrl" => $genUrl,
+                "genUser" => $genUser,
+                "withNames" => $withNames,
+                "lastMonth" => $lastMonth,
+                "lastYear" => $lastYear
+            );
+        }
+
+        echoData($stats);
     });
 
     $app->get("/accounts", function () use ($app) {
