@@ -102,7 +102,7 @@ $app->group("/generate", function () use ($app) {
         }
 
 
-        $cursor = skins()->find(array("uuid" => $longUuid));
+        $cursor = skins()->find(array("uuid" => $longUuid, "name" => $name));
         if ($cursor->count() >= 1) {// Already exists
             $json = dbToJson($cursor, true);
             $json = $json[0];
@@ -120,7 +120,7 @@ $app->group("/generate", function () use ($app) {
             file_put_contents($temp, file_get_contents($textureUrl));
             $hash = md5_file($temp);
 
-            $cursor = skins()->find(array("hash" => $hash));
+            $cursor = skins()->find(array("hash" => $hash, "name" => $name));
             if ($cursor->count() >= 1) {// Already generated
                 echoSkinData($cursor, $json, false);
                 skins()->update(array("hash" => $hash), array('$inc' => array("duplicate" => 1)));
@@ -578,7 +578,7 @@ $app->run();
 function generateData($app, $temp, $name, $model, $visibility, $type, $image)
 {
     $hash = md5_file($temp);
-    $cursor = skins()->find(array("hash" => $hash));
+    $cursor = skins()->find(array("hash" => $hash, "name" => $name, "model" => $model, "visibility" => $visibility));
     if ($cursor->count() >= 1) {// Already generated
         echoSkinData($cursor, $json, false);
         skins()->update(array("hash" => $hash), array('$inc' => array("duplicate" => 1)));
