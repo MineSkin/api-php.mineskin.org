@@ -355,6 +355,7 @@ $app->group("/render", function () use ($app) {
 
     $app->get("/skin", function () use ($app) {
         $url = $app->request()->params("url");
+        $skinName = $app->request()->params("skinName");
         $options = $app->request()->params("options", "&aa=true");
         if (is_null($url)) {
             exit("Missing URL");
@@ -375,12 +376,19 @@ $app->group("/render", function () use ($app) {
 
         $imginfo = getimagesize($url);
         header("Content-type: " . $imginfo ['mime']);
-        readfile($url);
+        if ("Dinnerbone" === $skinName || "Grumm" === $skinName) {
+            $image = imagecreatefromstring(file_get_contents($url));
+            imageflip($image, IMG_FLIP_VERTICAL);
+            imagepng($image);
+        } else {
+            readfile($url);
+        }
         exit();
     });
 
     $app->get("/head", function () use ($app) {
         $url = $app->request()->params("url");
+        $skinName = $app->request()->params("skinName");
         $options = $app->request()->params("options", "&aa=true");
         if (is_null($url)) {
             exit("Missing URL");
@@ -401,7 +409,13 @@ $app->group("/render", function () use ($app) {
 
         $imginfo = getimagesize($url);
         header("Content-type: " . $imginfo ['mime']);
-        readfile($url);
+        if ("Dinnerbone" === $skinName || "Grumm" === $skinName) {
+            $image = imagecreatefromstring(file_get_contents($url));
+            imageflip($image, IMG_FLIP_VERTICAL);
+            imagepng($image);
+        } else {
+            readfile($url);
+        }
         exit();
     });
 
