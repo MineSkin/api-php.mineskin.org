@@ -378,6 +378,7 @@ $app->group("/render", function () use ($app) {
         header("Content-type: " . $imginfo ['mime']);
         if ("Dinnerbone" === $skinName || "Grumm" === $skinName) {
             $image = imagecreatefromstring(file_get_contents($url));
+            imagesavealpha($image, true);
             imageflip($image, IMG_FLIP_VERTICAL);
             imagepng($image);
         } else {
@@ -411,6 +412,7 @@ $app->group("/render", function () use ($app) {
         header("Content-type: " . $imginfo ['mime']);
         if ("Dinnerbone" === $skinName || "Grumm" === $skinName) {
             $image = imagecreatefromstring(file_get_contents($url));
+            imagesavealpha($image, true);
             imageflip($image, IMG_FLIP_VERTICAL);
             imagepng($image);
         } else {
