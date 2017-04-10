@@ -137,7 +137,7 @@ $app->group("/generate", function () use ($app) {
                 $lastId = dbToJson($cursor, true)[0]["id"];
 
                 $data = array(
-                    "_id" => $hash,
+                    "_id" => md5($hash . $name . microtime()),
                     "id" => (int)($lastId + 1),
                     "hash" => $hash,
                     "name" => $name,
@@ -637,7 +637,7 @@ function generateData($app, $temp, $name, $model, $visibility, $type, $image)
                 $textureUrl = json_decode(base64_decode($skinData["value"]), true)["textures"]["SKIN"]["url"];
                 $isWebsiteGen = isset($_SERVER["HTTP_REFERER"]) && strpos($_SERVER["HTTP_REFERER"], "https://mineskin.org") === 0;
                 $data = array(
-                    "_id" => $hash,
+                    "_id" => md5($hash . $name . microtime()),
                     "id" => (int)($lastId + 1),
                     "hash" => $hash,
                     "name" => $name,
