@@ -228,13 +228,21 @@ $app->group("/get", function () use ($app) {
             $lastMonth = skins()->find(array("time" => array('$gt' => strtotime("1 month ago"))))->count();
             $lastYear = skins()->find(array("time" => array('$gt' => strtotime("1 year ago"))))->count();
 
+            $totalViews=skins()->aggregate(array('$group'=>array(
+                "_id"=>null,
+                "total"=>array(
+                    '$sum'=>'$views'
+                )
+            )))["result"][0]["total"];
+
             $stats["details"] = array(
                 "genUpload" => $genUpload,
                 "genUrl" => $genUrl,
                 "genUser" => $genUser,
                 "withNames" => $withNames,
                 "lastMonth" => $lastMonth,
-                "lastYear" => $lastYear
+                "lastYear" => $lastYear,
+                "totalViews" => $totalViews
             );
         }
 
