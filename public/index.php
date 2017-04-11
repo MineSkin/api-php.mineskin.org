@@ -228,10 +228,10 @@ $app->group("/get", function () use ($app) {
             $lastMonth = skins()->find(array("time" => array('$gt' => strtotime("1 month ago"))))->count();
             $lastYear = skins()->find(array("time" => array('$gt' => strtotime("1 year ago"))))->count();
 
-            $totalViews=skins()->aggregate(array('$group'=>array(
-                "_id"=>null,
-                "total"=>array(
-                    '$sum'=>'$views'
+            $totalViews = skins()->aggregate(array('$group' => array(
+                "_id" => null,
+                "total" => array(
+                    '$sum' => '$views'
                 )
             )))["result"][0]["total"];
 
