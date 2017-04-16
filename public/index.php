@@ -431,6 +431,13 @@ $app->group("/render", function () use ($app) {
 
 });
 
+$app->get("/go(/:id)", function ($id = -1) use ($app) {
+    if ($id < 0) {
+        $id = $_REQUEST["skinId"];
+    }
+    header("Location: https://mineskin.org/" . $id);
+});
+
 $app->group("/admin", function () use ($app) {
 
     $app->get("/accounts", function () use ($app) {
@@ -454,6 +461,7 @@ $app->group("/admin", function () use ($app) {
 
             echo "<head>";
             echo '<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">';
+            echo "<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css\">";
             echo "
 <style>
 .account-disabled > h2{
@@ -479,27 +487,47 @@ color:red;
                     $account["lastError"] = "";
                 }
 
-                echo "<form action='/admin/accounts/update/" . $account["id"] . "' method='post'>";
                 echo "<div id='account-" . $account["id"] . "' class='account " . ($account["enabled"] ? "account-enabled" : "account-disabled") . " " . ($account["hasError"] ? "account-error" : "") . "'>";
+                echo "<form action='/admin/accounts/update/" . $account["id"] . "' method='post'>";
                 echo "<h2>#" . $account["id"] . "&nbsp;" . $account["username"] . "</h2>";
                 if (isset($_GET["updateId"]) && $account["id"] == $_GET["updatedId"]) {
                     echo "<i>Updated!</i><br/>";
                 }
-                echo "<strong>Username</strong>&nbsp;<input id='username' name='username' type='text' readonly value='" . $account["username"] . "'><br/>";
-                echo "<strong>UUID</strong>&nbsp;<input id='uuid' name='uuid' type='text' readonly value='" . $account["uuid"] . "'><br/>";
-                echo "<strong>Last Used</strong>&nbsp;<input id='lastUsed' name='lastUsed' type='number' value='" . $account["lastUsed"] . "'>&nbsp;(" . date("F j, Y \a\\t g:ia", $account["lastUsed"]) . ")<br/>";
+                echo "<strong>Username</strong>&nbsp;<input class='form-control' id='username' name='username' type='text' readonly value='" . $account["username"] . "'><br/>";
+                echo "<strong>UUID</strong>&nbsp;<input class='form-control' id='uuid' name='uuid' type='text' readonly value='" . $account["uuid"] . "'><br/>";
+                echo "<strong>Last Used</strong>&nbsp;<input class='form-control' id='lastUsed' name='lastUsed' type='number' value='" . $account["lastUsed"] . "'>&nbsp;(" . date("F j, Y \a\\t g:ia", $account["lastUsed"]) . ")<br/>";
                 echo "<strong>Enabled</strong>&nbsp;<input id='enabled' name='enabled' type='checkbox' " . ($account["enabled"] ? "checked" : "") . "><br/>";
                 echo "<strong>Has Error</strong>&nbsp;<input id='hasError' name='hasError' type='checkbox' " . ($account["hasError"] ? "checked" : "") . "><br/>";
                 if ($account["hasError"]) {
-                    echo "<input id='lastError' name='lastError' type='text' style='width:100%;' value='" . $account["lastError"] . "'><br/>";
+                    echo "<input class='form-control' id='lastError' name='lastError' type='text' style='width:100%;' value='" . $account["lastError"] . "'><br/>";
                     echo "<strong>Last Image (" . $account["lastGen"]["type"] . ")</strong>: " . $account["lastGen"]["image"];
                 } else {
-                    echo "<input id='lastError' name='lastError' type='hidden' value=''>";
+                    echo "<input class='form-control' id='lastError' name='lastError' type='hidden' value=''>";
                 }
-                echo "<br/><button type='submit'>Update</button>";
-                echo "<hr/>";
-                echo "</div>";
+
+
+                echo "<br/><button class='btn btn-default' type='submit'>Update</button>";
                 echo "</form>";
+
+
+                echo "<br/>";
+                echo "<form action='/go' target='_blank'>";
+                echo "<label for='skinId'>Latest Skins</label><br/>";
+                echo "<select name='skinId' class='selectpicker'>";
+
+
+                $cursor1 = skins()->find(array("account" => $account["id"]))->sort(array("time" => 1))->limit(20);
+                $json1 = dbToJson($cursor1, true);
+
+
+                foreach ($json1 as $skin) {
+                    echo "<option value='" . $skin["id"] . "' data-content='<span style=\"color: black;\"><img src=\"https://api.mineskin.org/render/" . $skin["id"] . "/head\" style=\"width: 20px; height: 20px;\"> #" . $skin["id"] . ($skin["visibility"]>0?" (private)":""). "</span>'></option>";
+                }
+                echo "</select>";
+                echo "<button class='btn btn-default' type='submit'>Go</button>";
+                echo "</form>";
+                echo "</div>";
+                echo "<hr/>";
 
                 if ($account["id"] > $lastId) {
                     $lastId = $account["id"];
@@ -508,15 +536,24 @@ color:red;
 
             echo "<br/><hr/>";
             echo "<form action='/admin/accounts/add' method='post'>";
-            echo "<strong>ID</strong>&nbsp;<input id='id' name='id' type='number' readonly value='" . ($lastId + 1) . "'><br/>";
-            echo "<strong>Username</strong>&nbsp;<input id='username' name='username' type='text' required><br/>";
-            echo "<strong>Password</strong>&nbsp;<input id='password' name='password' type='password' required><br/>";
-            echo "<strong>UUID</strong>&nbsp;<input id='uuid' name='uuid' type='text' required><br/>";
-            echo "<strong>Security Answer</strong>&nbsp;<input id='security' name='security' type='text'><br/>";
-            echo "<br/><button type='submit'>Add Account</button>";
+            echo "<strong>ID</strong>&nbsp;<input class='form-control' id='id' name='id' type='number' readonly value='" . ($lastId + 1) . "'><br/>";
+            echo "<strong>Username</strong>&nbsp;<input class='form-control' id='username' name='username' type='text' required><br/>";
+            echo "<strong>Password</strong>&nbsp;<input class='form-control' id='password' name='password' type='password' required><br/>";
+            echo "<strong>UUID</strong>&nbsp;<input class='form-control' id='uuid' name='uuid' type='text' required><br/>";
+            echo "<strong>Security Answer</strong>&nbsp;<input class='form-control' id='security' name='security' type='text'><br/>";
+            echo "<br/><button class='btn btn-default' type='submit'>Add Account</button>";
             echo "</form>";
 
             echo "</div>";
+
+            echo "<script src=\"https://code.jquery.com/jquery-3.1.0.min.js\" integrity=\"sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=\" crossorigin=\"anonymous\"></script>
+<script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js\" integrity=\"sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa\" crossorigin=\"anonymous\"></script>";
+            echo "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/js/bootstrap-select.min.js\"></script>";
+            echo "<script>$('.selectpicker').selectpicker({
+                      style: 'btn-default',
+                      size: 10
+                    });
+                    </script>";
         } else {
             exit();
         }
