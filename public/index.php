@@ -493,6 +493,11 @@ color:red;
                 if (isset($_GET["updateId"]) && $account["id"] == $_GET["updatedId"]) {
                     echo "<i>Updated!</i><br/>";
                 }
+
+                $response = file_get_contents("https://api.mojang.com/user/profiles/" . $account["uuid"] . "/names");
+                $response = json_decode($response, true);
+
+                echo "<strong>Minecraft Name</strong>&nbsp; " . $response[count($response) - 1]["name"] . "<br/>";
                 echo "<strong>Username</strong>&nbsp;<input class='form-control' id='username' name='username' type='text' readonly value='" . $account["username"] . "'><br/>";
                 echo "<strong>UUID</strong>&nbsp;<input class='form-control' id='uuid' name='uuid' type='text' readonly value='" . $account["uuid"] . "'><br/>";
                 echo "<strong>Last Used</strong>&nbsp;<input class='form-control' id='lastUsed' name='lastUsed' type='number' value='" . $account["lastUsed"] . "'>&nbsp;(" . date("F j, Y \a\\t g:ia", $account["lastUsed"]) . ")<br/>";
@@ -521,7 +526,7 @@ color:red;
 
 
                 foreach ($json1 as $skin) {
-                    echo "<option value='" . $skin["id"] . "' data-content='<span style=\"color: black;\"><img src=\"https://api.mineskin.org/render/" . $skin["id"] . "/head\" style=\"width: 20px; height: 20px;\"> #" . $skin["id"] . ($skin["visibility"]>0?" (private)":""). "</span>'></option>";
+                    echo "<option value='" . $skin["id"] . "' data-content='<span style=\"color: black;\"><img src=\"https://api.mineskin.org/render/" . $skin["id"] . "/head\" style=\"width: 20px; height: 20px;\"> #" . $skin["id"] . ($skin["visibility"] > 0 ? " (private)" : "") . "</span>'></option>";
                 }
                 echo "</select>";
                 echo "<button class='btn btn-default' type='submit'>Go</button>";
