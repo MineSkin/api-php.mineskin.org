@@ -8,19 +8,19 @@ include("../internal/dataFetcher.php");
 $app = new \Slim\Slim();
 
 $app->hook("slim.before", function () use ($app) {
-    if(isset($_SERVER["HTTP_REFERER"])) {
-        if (strpos($_SERVER["HTTP_REFERER"], "skin.feerko.pl")) {
-            $app->halt(403);
-            exit();
-        }
-    }
-
     header("Access-Control-Allow-Origin: *");
     if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
         header("Access-Control-Allow-Methods: POST, GET, OPTIONS, DELETE, PUT");
         header("Access-Control-Allow-Headers: X-Requested-With, Accept, Content-Type, Origin");
         header("Access-Control-Request-Headers: X-Requested-With, Accept, Content-Type, Origin");
         exit;
+    }
+
+    if (isset($_SERVER["HTTP_REFERER"])) {
+        if (strpos($_SERVER["HTTP_REFERER"], "skin.feerko.pl")) {
+            $app->halt(403, json_encode(array("error" => "The website '" . $_SERVER["HTTP_REFERER"] . "' is not official. Please use MineSkin.org - Thanks! :)")));
+            exit();
+        }
     }
 });
 
