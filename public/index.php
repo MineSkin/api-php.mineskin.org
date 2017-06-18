@@ -16,6 +16,13 @@ $app->hook("slim.before", function () use ($app) {
         exit;
     }
 });
+$app->hook("slim.before.dispatch", function () use ($app) {
+    if(isset($_SERVER["HTTP_REFERER"])) {
+        if (strpos($_SERVER["HTTP_REFERER"], "skin.feerko.pl")) {
+            $app->halt(403);
+        }
+    }
+});
 
 $app->get("/", function () {
     echo "hi!";
