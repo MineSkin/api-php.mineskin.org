@@ -728,6 +728,8 @@ function generateData($app, $temp, $name, $model, $visibility, $type, $image)
                 array("username" => $account["username"]),
                 array('$set' => array("lastUsed" => $time)));
 
+
+            // Ignored errors
             if ("ResponseCode: 400, Message: Could not set skin from the provided url." === $skin_error) {
                 // Ignore this error since it's caused by an invalid skin image, not the account
 
@@ -741,6 +743,19 @@ function generateData($app, $temp, $name, $model, $visibility, $type, $image)
                     "details" => $skin_error), 500);
                 return;
             }
+            if (strpos($skin_error, "The request requires user authentication") !== false) {
+
+                echoData(array("error" => "Failed to log into the account (#" . $account["id"] . "). Please try again later",
+                    "details" => $skin_error), 500);
+                return;
+            }
+            if (strpos($skin_error, "Could not set skin from the provided url.") !== false) {
+
+                echoData(array("error" => "Invalid skin url",
+                    "details" => $skin_error), 500);
+                return;
+            }
+
 
             echoData(array("error" => "Unknown account error. Try again later.",
                 "details" => $skin_error), 500);
