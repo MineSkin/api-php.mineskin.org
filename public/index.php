@@ -614,7 +614,7 @@ color:red;
                 "username" => $username,
                 "password" => encryptPassword($password),
                 "security" => $security,
-                "uuid" => $uuid,
+                "uuid" => str_replace("-", "", $uuid),
 
                 "lastUsed" => 0,
                 "enabled" => false,
