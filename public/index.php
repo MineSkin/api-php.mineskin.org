@@ -524,13 +524,12 @@ color:red;
 
                 echo "<div class='col-md-4'> <div id='account-" . $account["id"] . "' class='account " . ($account["enabled"] ? "account-enabled" : "account-disabled") . " " . ($account["hasError"] ? "account-error" : "") . "'>";
                 echo "<form action='/admin/accounts/update/" . $account["id"] . "' method='post'>";
-                echo "<h2>#" . $account["id"] . "&nbsp;" . $account["username"] . "</h2>";
+                echo "<h2>#" . $account["id"] . "&nbsp;<span class='future-skin-username' data-uuid='" . $account["uuid"] . "'>...</span></h2>";
                 if (isset($_GET["updateId"]) && $account["id"] == $_GET["updatedId"]) {
                     echo "<i>Updated!</i><br/>";
                 }
 
-                echo "<strong>Minecraft Name</strong>&nbsp; <span class='future-skin-username' data-uuid='" . $account["uuid"] . "'>...</span> <br/>";
-                echo "<strong>Username</strong>&nbsp;<input class='form-control' id='username' name='username' type='text' readonly value='" . $account["username"] . "'><br/>";
+                echo "<strong>Username/Email</strong>&nbsp;<input class='form-control' id='username' name='username' type='text' readonly value='" . $account["username"] . "'><br/>";
                 echo "<strong>UUID</strong>&nbsp;<input class='form-control' id='uuid' name='uuid' type='text' readonly value='" . $account["uuid"] . "'><br/>";
                 echo "<strong>Last Used</strong>&nbsp;<input class='form-control' id='lastUsed' name='lastUsed' type='number' value='" . $account["lastUsed"] . "'>&nbsp;(" . date("F j, Y \a\\t g:ia", $account["lastUsed"]) . ")<br/>";
                 echo "<strong>Enabled</strong>&nbsp;<input id='enabled' name='enabled' type='checkbox' " . ($account["enabled"] ? "checked" : "") . "><br/>";
