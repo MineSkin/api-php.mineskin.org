@@ -496,6 +496,9 @@ $app->group("/admin", function () use ($app) {
             echo "<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css\">";
             echo "
 <style>
+.account{
+padding:5px;
+}
 .account-disabled > h2{
 color:#777;
 }
