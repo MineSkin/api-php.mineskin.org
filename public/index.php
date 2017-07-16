@@ -348,6 +348,31 @@ $app->group("/validate", function () use ($app) {
         ));
     });
 
+    $app->get("/currentUsername/:uuid", function ($uuid) use ($app) {
+        $response = false;
+        try {
+            $response = file_get_contents("https://api.mojang.com/user/profiles/" . $uuid . "/names");
+        } catch (Exception $e) {
+
+        }
+        if ($response) {
+            $response = json_decode($response, true);
+
+            $name = $response[count($response) - 1]["name"];
+            echoData(array(
+                "uuid"=>$uuid,
+                "name" => $name
+            ));
+        } else {
+            echoData(array(
+                "uuid"=>$uuid,
+                "name" => "unknown"
+            ));
+        }
+
+
+    });
+
 });
 
 $app->group("/render", function () use ($app) {
@@ -482,10 +507,13 @@ color:red;
 }
 </style>";
             echo "</head>";
-            echo "<div class='container'>";
+            echo "<div class='container-fluid'>";
             echo "<h1>MineSkin Accounts</h1>";
 
+            echo "<div class='row'>";
+
             $lastId = -1;
+            $index = 1;
             foreach ($json as $account) {
                 if (!isset($account["hasError"])) {
                     $account["hasError"] = false;
@@ -494,17 +522,14 @@ color:red;
                     $account["lastError"] = "";
                 }
 
-                echo "<div id='account-" . $account["id"] . "' class='account " . ($account["enabled"] ? "account-enabled" : "account-disabled") . " " . ($account["hasError"] ? "account-error" : "") . "'>";
+                echo "<div class='col-md-4'> <div id='account-" . $account["id"] . "' class='account " . ($account["enabled"] ? "account-enabled" : "account-disabled") . " " . ($account["hasError"] ? "account-error" : "") . "'>";
                 echo "<form action='/admin/accounts/update/" . $account["id"] . "' method='post'>";
                 echo "<h2>#" . $account["id"] . "&nbsp;" . $account["username"] . "</h2>";
                 if (isset($_GET["updateId"]) && $account["id"] == $_GET["updatedId"]) {
                     echo "<i>Updated!</i><br/>";
                 }
 
-                $response = file_get_contents("https://api.mojang.com/user/profiles/" . $account["uuid"] . "/names");
-                $response = json_decode($response, true);
-
-                echo "<strong>Minecraft Name</strong>&nbsp; " . $response[count($response) - 1]["name"] . "<br/>";
+                echo "<strong>Minecraft Name</strong>&nbsp; <span class='future-skin-username' data-uuid='" . $account["uuid"] . "'>...</span> <br/>";
                 echo "<strong>Username</strong>&nbsp;<input class='form-control' id='username' name='username' type='text' readonly value='" . $account["username"] . "'><br/>";
                 echo "<strong>UUID</strong>&nbsp;<input class='form-control' id='uuid' name='uuid' type='text' readonly value='" . $account["uuid"] . "'><br/>";
                 echo "<strong>Last Used</strong>&nbsp;<input class='form-control' id='lastUsed' name='lastUsed' type='number' value='" . $account["lastUsed"] . "'>&nbsp;(" . date("F j, Y \a\\t g:ia", $account["lastUsed"]) . ")<br/>";
@@ -533,20 +558,27 @@ color:red;
 
 
                 foreach ($json1 as $skin) {
-                    echo "<option value='" . $skin["id"] . "' data-content='<span style=\"color: black;\"><img src=\"https://api.mineskin.org/render/" . $skin["id"] . "/head\" style=\"width: 20px; height: 20px;\"> #" . $skin["id"] . ($skin["visibility"] > 0 ? " (private)" : "") . "</span>'></option>";
+                    echo "<option value='" . $skin["id"] . "' data-content='<span style=\"color: black;\"><img class=\"future-skin-img\" data-skin=\"" . $skin["id"] . "\" src=\"\" style=\"width: 20px; height: 20px;\"> #" . $skin["id"] . ($skin["visibility"] > 0 ? " (private)" : "") . "</span>'></option>";
                 }
                 echo "</select>";
                 echo "<button class='btn btn-default' type='submit'>Go</button>";
                 echo "</form>";
                 echo "</div>";
-                echo "<hr/>";
+                echo "</div>";
+
+                if ($index % 3 == 0) {
+                    echo "<br/><br/></div>";
+                    echo "<div class='row'><br/><br/>";
+                }
+                $index++;
 
                 if ($account["id"] > $lastId) {
                     $lastId = $account["id"];
                 }
             }
+            echo "</div>";
 
-            echo "<br/><hr/>";
+            echo "<br/><br/><br/><hr/>";
             echo "<form action='/admin/accounts/add' method='post'>";
             echo "<strong>ID</strong>&nbsp;<input class='form-control' id='id' name='id' type='number' readonly value='" . ($lastId + 1) . "'><br/>";
             echo "<strong>Username</strong>&nbsp;<input class='form-control' id='username' name='username' type='text' required><br/>";
@@ -557,6 +589,7 @@ color:red;
             echo "</form>";
 
             echo "</div>";
+            echo "</div>";
 
             echo "<script src=\"https://code.jquery.com/jquery-3.1.0.min.js\" integrity=\"sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=\" crossorigin=\"anonymous\"></script>
 <script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js\" integrity=\"sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa\" crossorigin=\"anonymous\"></script>";
@@ -565,6 +598,16 @@ color:red;
                       style: 'btn-default',
                       size: 10
                     });
+                    
+                    $('.future-skin-img').each(function(){
+                        $(this).attr('src','https://api.mineskin.org/render/'+$(this).data('skin')+'/head');
+                    })
+                    
+                    $('.future-skin-username').each(function(){
+                        $.get('https://api.mineskin.org/validate/currentUsername/'+$(this).data('uuid'),function(data) {
+                          $('.future-skin-username[data-uuid=\''+data.uuid+'\']').text(data.name);
+                        })
+                    })
                     </script>";
         } else {
             exit();
